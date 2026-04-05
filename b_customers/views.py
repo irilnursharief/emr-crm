@@ -1,7 +1,9 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
 from .models import Customer
 from d_repairs.models import Repair
+from .forms import CustomerForm
 
 
 @login_required
@@ -26,3 +28,23 @@ def customer_detail(request, pk):
         "customers/customer_detail.html",
         {"customer": customer, "repairs": repairs},
     )
+
+
+@login_required
+def customer_create(request):
+    if request.method == "POST":
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            customer = form.save(commit=False)
+            customer.created_by = request.user
+            customer.save()
+
+            messages.success(
+                request, f"Customer {customer.full_name} created successfully."
+            )
+
+            return redirect("customers:detail", pk=customer.pk)
+    else:
+        form = CustomerForm()
+
+    return render(request, "customers/customer_form.html", {"form": form})
