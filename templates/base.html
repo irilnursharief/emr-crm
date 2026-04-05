@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hardware Repair CRM{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}bg-red-600{% elif message.tags == 'success' %}bg-green-600{% else %}bg-blue-600{% endif %} text-white px-4 py-3 text-center text-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+</body>
+</html>
