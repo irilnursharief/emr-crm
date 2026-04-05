@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} — EMR-CRM</title>
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+</head>
+<body class="bg-gray-900 text-gray-300 font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        {% include "_sidebar.html" %}
+
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- Topbar -->
+            {% include "_topbar.html" %}
+
+            <!-- Main content -->
+            <main class="flex-1 overflow-y-auto bg-gray-900 p-6 md:p-8">
+                <div class="max-w-7xl mx-auto">
+                    
+                    <!-- Page Header -->
+                    <div class="mb-6">
+                        <h1 class="text-2xl md:text-3xl font-semibold text-white">
+                            {% block page_title %}{% endblock %}
+                        </h1>
+                        {% block page_subtitle %}{% endblock %}
+                    </div>
+                    
+                    <!-- Main page content from child templates -->
+                    {% block content %}{% endblock %}
+                    
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
