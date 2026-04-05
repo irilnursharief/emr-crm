@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "a_users",
     "b_customers",
     "c_devices",
+    "d_repairs",
 ]
 
 MIDDLEWARE = [
