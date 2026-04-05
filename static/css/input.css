@@ -1,3 +1,20 @@
 @import "tailwindcss";
 
 @source "../../templates/**/*.html";
+
+/* Tab styling */
+.tab-label {
+    color: #9ca3af;
+}
+
+.tab-label:hover {
+    color: #ffffff;
+    background-color: rgba(55, 65, 81, 0.5);
+}
+
+input#tab-overview:checked~div .tab-label[for="tab-overview"],
+input#tab-quotation:checked~div .tab-label[for="tab-quotation"],
+input#tab-journal:checked~div .tab-label[for="tab-journal"] {
+    color: #ffffff;
+    border-bottom: 2px solid #3b82f6;
+}
