@@ -1,0 +1,120 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}{{ device.brand }} {{ device.model }}{% endblock %}
+{% block page_title %}{{ device.brand }} {{ device.model }}{% endblock %}
+{% block page_subtitle %}
+  <p class="mt-1 text-sm text-gray-400">
+    Owned by
+    <a class="text-blue-400 hover:underline" href="{% url 'customers:detail' device.customer.pk %}">
+      {{ device.customer.full_name }}
+    </a>
+    • <span class="font-mono">{{ device.serial_number }}</span>
+  </p>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <!-- Left: Device info -->
+  <div class="lg:col-span-1 space-y-6">
+
+    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-white font-semibold">Device Details</h2>
+        <a href="{% url 'devices:edit' device.pk %}"
+           class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
+          Edit
+        </a>
+      </div>
+
+      <dl class="space-y-3">
+        <div>
+          <dt class="text-xs text-gray-400 uppercase tracking-wider">Type</dt>
+          <dd class="text-white mt-1">{{ device.get_type_display }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-400 uppercase tracking-wider">Brand</dt>
+          <dd class="text-white mt-1">{{ device.brand }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-400 uppercase tracking-wider">Model</dt>
+          <dd class="text-white mt-1">{{ device.model }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-400 uppercase tracking-wider">Serial Number</dt>
+          <dd class="text-white font-mono mt-1">{{ device.serial_number }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-400 uppercase tracking-wider">Peripherals</dt>
+          <dd class="text-white mt-1">{{ device.peripherals|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-400 uppercase tracking-wider">Registered</dt>
+          <dd class="text-white mt-1">{{ device.created_at|date:"M d, Y" }}</dd>
+        </div>
+        {% if device.created_by %}
+        <div>
+          <dt class="text-xs text-gray-400 uppercase tracking-wider">Registered By</dt>
+          <dd class="text-white mt-1">{{ device.created_by.get_full_name|default:device.created_by.username }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+    </div>
+
+    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+      <h2 class="text-white font-semibold mb-4">Next Step</h2>
+      <a href="{% url 'repairs:create' %}?device={{ device.pk }}"
+         class="w-full inline-flex justify-center px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition">
+        + Create Repair
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Right: Repairs for this device -->
+  <div class="lg:col-span-2 space-y-6">
+    <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+        <h2 class="text-white font-semibold">Repair History</h2>
+      </div>
+
+      <div class="divide-y divide-gray-700">
+        {% for repair in repairs %}
+          <a href="{% url 'repairs:detail' repair.pk %}"
+             class="block px-6 py-4 hover:bg-gray-700/30 transition-colors duration-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-white font-mono text-sm">#{{ repair.id|stringformat:"04d" }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ repair.issue_category }}</p>
+                <p class="text-xs text-gray-500 mt-0.5">{{ repair.created_at|date:"M d, Y" }}</p>
+              </div>
+              <div class="flex items-center gap-3">
+                {% if repair.status == 'pending' %}
+                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400">{{ repair.get_status_display }}</span>
+                {% elif repair.status == 'in_progress' %}
+                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400">{{ repair.get_status_display }}</span>
+                {% elif repair.status == 'awaiting_approval' %}
+                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400">{{ repair.get_status_display }}</span>
+                {% elif repair.status == 'completed' %}
+                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400">{{ repair.get_status_display }}</span>
+                {% elif repair.status == 'released' %}
+                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400">{{ repair.get_status_display }}</span>
+                {% endif %}
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </div>
+          </a>
+        {% empty %}
+          <div class="px-6 py-8 text-center text-gray-400 text-sm">
+            No repairs yet for this device.
+          </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from b_customers.models import Customer
 from .models import Device
 from .forms import DeviceForm
+from d_repairs.models import Repair
 
 
 @login_required
@@ -65,5 +66,27 @@ def device_edit(request, pk):
             "form": form,
             "is_edit": True,
             "device": device,
+        },
+    )
+
+
+@login_required
+def device_detail(request, pk):
+    device = get_object_or_404(
+        Device.objects.select_related("customer", "created_by"), pk=pk
+    )
+
+    repairs = (
+        Repair.objects.filter(device=device)
+        .select_related("device", "device__customer", "assigned_to")
+        .order_by("-created_at")
+    )
+
+    return render(
+        request,
+        "devices/device_detail.html",
+        {
+            "device": device,
+            "repairs": repairs,
         },
     )

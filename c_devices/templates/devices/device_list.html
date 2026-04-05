@@ -26,7 +26,8 @@
       </thead>
       <tbody class="divide-y divide-gray-700">
         {% for d in devices %}
-          <tr class="hover:bg-gray-700/30">
+          <tr class="hover:bg-gray-700/30 cursor-pointer"
+          onclick="window.location='{% url 'devices:detail' d.pk %}'">
             <td class="px-6 py-4 text-white">{{ d.brand }} {{ d.model }}</td>
             <td class="px-6 py-4 text-gray-300 font-mono">{{ d.serial_number }}</td>
             <td class="px-6 py-4 text-gray-400">{{ d.get_type_display }}</td>
