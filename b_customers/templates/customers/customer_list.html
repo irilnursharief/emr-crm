@@ -26,18 +26,18 @@
       </thead>
       <tbody class="divide-y divide-gray-700">
         {% for c in customers %}
-          <tr class="hover:bg-gray-700/30">
-            <td class="px-6 py-4 text-white">{{ c.full_name }}</td>
-            <td class="px-6 py-4">{{ c.contact_number }}</td>
-            <td class="px-6 py-4 text-gray-400">{{ c.email|default:"—" }}</td>
-            <td class="px-6 py-4 text-gray-400">{{ c.created_at|date:"M d, Y" }}</td>
-          </tr>
+            <tr class="hover:bg-gray-700/30 cursor-pointer" onclick="window.location='{% url 'customers:detail' c.pk %}'">
+                <td class="px-6 py-4 text-white">{{ c.full_name }}</td>
+                <td class="px-6 py-4">{{ c.contact_number }}</td>
+                <td class="px-6 py-4 text-gray-400">{{ c.email|default:"—" }}</td>
+                <td class="px-6 py-4 text-gray-400">{{ c.created_at|date:"M d, Y" }}</td>
+            </tr>
         {% empty %}
-          <tr>
-            <td class="px-6 py-10 text-center text-gray-400" colspan="4">
-              No customers yet.
-            </td>
-          </tr>
+            <tr>
+                <td class="px-6 py-10 text-center text-gray-400" colspan="4">
+                    No customers yet.
+                </td>
+            </tr>
         {% endfor %}
       </tbody>
     </table>
