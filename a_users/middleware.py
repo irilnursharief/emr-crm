@@ -1,0 +1,31 @@
+from django.conf import settings
+from django.shortcuts import redirect
+from django.urls import resolve
+
+EXEMPT_URLNAMES = {
+    "login",
+    "logout",
+    "admin:login",
+}
+
+
+class LoginRequiredMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Allow unauthenticated access to admin and auth endpoints
+        if request.path.startswith("/admin/") or request.path.startswith("/accounts/"):
+            return self.get_response(request)
+
+        # Allow static/media in debug (optional)
+        if settings.DEBUG and (
+            request.path.startswith("/static/") or request.path.startswith("/media/")
+        ):
+            return self.get_response(request)
+
+        # If user not authenticated, redirect to login
+        if not request.user.is_authenticated:
+            return redirect(settings.LOGIN_URL)
+
+        return self.get_response(request)

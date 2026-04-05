@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-class Users(AbstractUser):
+class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
         CRS = "crs", "CRS"
