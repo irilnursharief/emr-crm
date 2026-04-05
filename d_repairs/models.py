@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from b_customers.models import TimestampedModel
 from c_devices.models import Device
+from decimal import Decimal
 
 
 class Repair(TimestampedModel):
@@ -50,6 +51,22 @@ class Repair(TimestampedModel):
 
     def __str__(self):
         return f"Repair #{self.id} | {self.device}"
+
+    @property
+    def total_paid(self):
+        return sum(p.amount for p in self.payments.all())
+
+    @property
+    def quotation_total(self):
+        # Safely get quotation total, returns 0 if no quotation exists
+        try:
+            return self.quotation.total
+        except Repair.quotation.RelatedObjectDoesNotExist:
+            return 0
+
+    @property
+    def balance_due(self):
+        return self.quotation_total - self.total_paid
 
 
 class RepairNote(TimestampedModel):

@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "c_devices",
     "d_repairs",
     "e_quotations",
+    "f_payments",
 ]
 
 MIDDLEWARE = [

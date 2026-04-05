@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Repair, RepairNote
+from f_payments.models import Payment
 
 
 class RepairNoteInline(admin.StackedInline):
@@ -16,6 +17,26 @@ class RepairNoteInline(admin.StackedInline):
         return False
 
 
+class PaymentInline(admin.TabularInline):
+    model = Payment
+    extra = 0
+    fields = [
+        "amount",
+        "payment_type",
+        "mode_of_payment",
+        "reference_number",
+        "created_by",
+        "created_at",
+    ]
+    readonly_fields = ["created_by", "created_at"]
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(Repair)
 class RepairAdmin(admin.ModelAdmin):
     list_display = ["id", "device", "status", "assigned_to", "created_at"]
@@ -25,8 +46,14 @@ class RepairAdmin(admin.ModelAdmin):
         "device__customer__first_name",
         "issue_category",
     ]
-    readonly_fields = ["created_at", "updated_at", "created_by"]
-    inlines = [RepairNoteInline]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+        "created_by",
+        "get_total_paid",
+        "get_balance_due",
+    ]
+    inlines = [RepairNoteInline, PaymentInline]
 
     fieldsets = (
         ("Device & Assignment", {"fields": ("device", "status", "assigned_to")}),
@@ -46,6 +73,12 @@ class RepairAdmin(admin.ModelAdmin):
             },
         ),
         (
+            "Financial Summary",
+            {
+                "fields": ("get_total_paid", "get_balance_due"),
+            },
+        ),
+        (
             "Audit Trail",
             {
                 "fields": ("created_by", "created_at", "updated_at"),
@@ -53,6 +86,19 @@ class RepairAdmin(admin.ModelAdmin):
             },
         ),
     )
+
+    def get_total_paid(self, obj):
+        return f"₱ {obj.total_paid:,.2f}"
+
+    get_total_paid.short_description = "Total Paid"
+
+    def get_balance_due(self, obj):
+        balance = obj.balance_due
+        if balance > 0:
+            return f"₱ {balance:,.2f} (Outstanding)"
+        return "₱ 0.00 (Fully Paid)"
+
+    get_balance_due.short_description = "Balance Due"
 
     def save_model(self, request, obj, form, change):
         if not change and not obj.created_by:
@@ -62,7 +108,7 @@ class RepairAdmin(admin.ModelAdmin):
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
         for instance in instances:
-            if isinstance(instance, RepairNote) and not instance.created_by_id:
+            if not instance.created_by_id:
                 instance.created_by = request.user
             instance.save()
         formset.save_m2m()
