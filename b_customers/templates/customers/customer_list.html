@@ -9,7 +9,7 @@
 <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
   <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
     <div class="text-white font-semibold">All Customers</div>
-    <a href="#" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition">
+    <a href="{% url 'customers:create' %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition">
       Add Customer
     </a>
   </div>
@@ -25,21 +25,21 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-700">
-        {% for c in customers %}
-            <tr class="hover:bg-gray-700/30 cursor-pointer" onclick="window.location='{% url 'customers:detail' c.pk %}'">
-                <td class="px-6 py-4 text-white">{{ c.full_name }}</td>
-                <td class="px-6 py-4">{{ c.contact_number }}</td>
-                <td class="px-6 py-4 text-gray-400">{{ c.email|default:"—" }}</td>
-                <td class="px-6 py-4 text-gray-400">{{ c.created_at|date:"M d, Y" }}</td>
-            </tr>
-        {% empty %}
-            <tr>
-                <td class="px-6 py-10 text-center text-gray-400" colspan="4">
-                    No customers yet.
-                </td>
-            </tr>
-        {% endfor %}
-      </tbody>
+      {% for c in customers %}
+          <tr class="hover:bg-gray-700/30 cursor-pointer" onclick="window.location='{% url 'customers:detail' c.pk %}'">
+              <td class="px-6 py-4 text-white">{{ c.full_name }}</td>
+              <td class="px-6 py-4">{{ c.contact_number }}</td>
+              <td class="px-6 py-4 text-gray-400">{{ c.email|default:"—" }}</td>
+              <td class="px-6 py-4 text-gray-400">{{ c.created_at|date:"M d, Y" }}</td>
+          </tr>
+      {% empty %}
+          <tr>
+              <td class="px-6 py-10 text-center text-gray-400" colspan="4">
+                  No customers yet.
+              </td>
+          </tr>
+      {% endfor %}
+</tbody>
     </table>
   </div>
 </div>

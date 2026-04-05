@@ -92,29 +92,35 @@
             </div>
             <div class="divide-y divide-gray-700">
                 {% for repair in repairs %}
-                    <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-700/30 cursor-pointer"
-                        >
-                        <div>
-                            <p class="text-white font-mono text-sm">#{{ repair.id|stringformat:"04d" }}</p>
-                            <p class="text-xs text-gray-400 mt-0.5">
-                                {{ repair.device.brand }} {{ repair.device.model }} &bull; {{ repair.issue_category }}
-                            </p>
-                            <p class="text-xs text-gray-500 mt-0.5">{{ repair.created_at|date:"M d, Y" }}</p>
+                    <a href="{% url 'repairs:detail' repair.pk %}"
+                    class="block px-6 py-4 hover:bg-gray-700/30 transition-colors duration-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white font-mono text-sm">#{{ repair.id|stringformat:"04d" }}</p>
+                                <p class="text-xs text-gray-400 mt-0.5">
+                                    {{ repair.device.brand }} {{ repair.device.model }} &bull; {{ repair.issue_category }}
+                                </p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ repair.created_at|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                {% if repair.status == 'pending' %}
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400">{{ repair.get_status_display }}</span>
+                                {% elif repair.status == 'in_progress' %}
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400">{{ repair.get_status_display }}</span>
+                                {% elif repair.status == 'awaiting_approval' %}
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400">{{ repair.get_status_display }}</span>
+                                {% elif repair.status == 'completed' %}
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400">{{ repair.get_status_display }}</span>
+                                {% elif repair.status == 'released' %}
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400">{{ repair.get_status_display }}</span>
+                                {% endif %}
+                                <!-- Chevron -->
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
                         </div>
-                        <div>
-                            {% if repair.status == 'pending' %}
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400">{{ repair.get_status_display }}</span>
-                            {% elif repair.status == 'in_progress' %}
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400">{{ repair.get_status_display }}</span>
-                            {% elif repair.status == 'awaiting_approval' %}
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400">{{ repair.get_status_display }}</span>
-                            {% elif repair.status == 'completed' %}
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400">{{ repair.get_status_display }}</span>
-                            {% elif repair.status == 'released' %}
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400">{{ repair.get_status_display }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
+                    </a>
                 {% empty %}
                     <div class="px-6 py-8 text-center text-gray-400 text-sm">
                         No repair history yet.
