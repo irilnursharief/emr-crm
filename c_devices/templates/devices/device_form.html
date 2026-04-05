@@ -1,9 +1,11 @@
 {% extends "base_dashboard.html" %}
 
-{% block title %}Add Device{% endblock %}
-{% block page_title %}Add Device{% endblock %}
+{% block title %}{% if is_edit %}Edit Device{% else %}Add Device{% endif %}{% endblock %}
+{% block page_title %}{% if is_edit %}Edit Device{% else %}Add Device{% endif %}{% endblock %}
 {% block page_subtitle %}
-    <p class="mt-1 text-sm text-gray-400">Register a new customer device</p>
+    <p class="mt-1 text-sm text-gray-400">
+        {% if is_edit %}Update device details{% else %}Register a new customer device{% endif %}
+    </p>
 {% endblock %}
 
 {% block content %}
@@ -84,14 +86,14 @@
                     {% endif %}
                 </div>
 
-                <!-- Actions -->
-                <div class="pt-4 flex items-center gap-4">
+                <!-- Form Actions -->
+                <div class="mt-8 flex items-center gap-4">
                     <button type="submit"
-                            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">
-                        Create Device
+                            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200">
+                        {% if is_edit %}Save Changes{% else %}Create Device{% endif %}
                     </button>
-                    <a href="{% url 'devices:list' %}"
-                       class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition duration-200">
+                    <a href="{% if is_edit %}{% url 'customers:detail' device.customer.pk %}{% else %}{% url 'devices:list' %}{% endif %}"
+                    class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition duration-200">
                         Cancel
                     </a>
                 </div>
