@@ -30,7 +30,8 @@
             </thead>
             <tbody class="divide-y divide-gray-700">
                 {% for r in repairs %}
-                    <tr class="hover:bg-gray-700/30">
+                    <tr class="hover:bg-gray-700/30 cursor-pointer"
+                        onclick="window.location='{% url 'repairs:detail' r.pk %}'">
                         <td class="px-6 py-4 font-mono text-blue-400">
                             #{{ r.id|stringformat:"04d" }}
                         </td>
