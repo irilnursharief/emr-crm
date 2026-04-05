@@ -131,9 +131,15 @@
                 <h2 class="text-white font-semibold mb-4">Repair Details</h2>
 
                 <div class="mb-6">
-                    <h3 class="text-xs text-blue-400 uppercase tracking-wider font-semibold mb-3">
-                        Intake Information (Front Desk)
-                    </h3>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs text-blue-400 uppercase tracking-wider font-semibold">
+                            Intake Information (Front Desk)
+                        </h3>
+                        <a href="{% url 'repairs:edit_intake' repair.pk %}"
+                        class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
+                            Edit
+                        </a>
+                    </div>
                     <dl class="space-y-3">
                         <div>
                             <dt class="text-xs text-gray-400 uppercase tracking-wider">Issue Category</dt>
@@ -151,9 +157,21 @@
                 </div>
 
                 <div class="pt-4 border-t border-gray-700">
+                    {% if user.is_technician or user.is_admin %}
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs text-purple-400 uppercase tracking-wider font-semibold">
+                            Technical Findings (Technician)
+                        </h3>
+                        <a href="{% url 'repairs:edit_technical' repair.pk %}"
+                        class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
+                            Edit
+                        </a>
+                    </div>
+                    {% else %}
                     <h3 class="text-xs text-purple-400 uppercase tracking-wider font-semibold mb-3">
                         Technical Findings (Technician)
                     </h3>
+                    {% endif %}
                     <dl class="space-y-3">
                         <div>
                             <dt class="text-xs text-gray-400 uppercase tracking-wider">MI (Technical Inspection)</dt>

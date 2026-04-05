@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from b_customers.models import Customer
 from .models import Device
 from .forms import DeviceForm
@@ -41,3 +41,29 @@ def device_create(request):
                 pass
 
     return render(request, "devices/device_form.html", {"form": form})
+
+
+@login_required
+def device_edit(request, pk):
+    device = get_object_or_404(Device, pk=pk)
+
+    if request.method == "POST":
+        form = DeviceForm(request.POST, instance=device)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request, f"Device {device.brand} {device.model} updated successfully."
+            )
+            return redirect("customers:detail", pk=device.customer.pk)
+    else:
+        form = DeviceForm(instance=device)
+
+    return render(
+        request,
+        "devices/device_form.html",
+        {
+            "form": form,
+            "is_edit": True,
+            "device": device,
+        },
+    )

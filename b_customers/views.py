@@ -48,3 +48,29 @@ def customer_create(request):
         form = CustomerForm()
 
     return render(request, "customers/customer_form.html", {"form": form})
+
+
+@login_required
+def customer_edit(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+
+    if request.method == "POST":
+        form = CustomerForm(request.POST, instance=customer)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request, f"Customer {customer.full_name} updated successfully."
+            )
+            return redirect("customers:detail", pk=customer.pk)
+    else:
+        form = CustomerForm(instance=customer)
+
+    return render(
+        request,
+        "customers/customer_form.html",
+        {
+            "form": form,
+            "is_edit": True,
+            "customer": customer,
+        },
+    )

@@ -14,7 +14,13 @@
 
         <!-- Customer Info Card -->
         <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
-            <h2 class="text-white font-semibold mb-4">Contact Information</h2>
+             <div class="flex items-center justify-between mb-4">
+                <h2 class="text-white font-semibold">Contact Information</h2>
+                <a href="{% url 'customers:edit' customer.pk %}"
+                class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
+                    Edit
+                </a>
+            </div>
             <dl class="space-y-3">
                 <div>
                     <dt class="text-xs text-gray-400 uppercase tracking-wider">Full Name</dt>
@@ -54,7 +60,8 @@
         <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
                 <h2 class="text-white font-semibold">Registered Devices</h2>
-                <a href="{% url 'devices:create' %}?customer={{ customer.pk }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition">
+                <a href="{% url 'devices:create' %}?customer={{ customer.pk }}"
+                class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition">
                     Add Device
                 </a>
             </div>
@@ -65,15 +72,26 @@
                             <div>
                                 <p class="text-white font-medium">{{ device.brand }} {{ device.model }}</p>
                                 <p class="text-xs text-gray-400 mt-0.5">
-                                    {{ device.get_type_display }} &bull; 
+                                    {{ device.get_type_display }} &bull;
                                     <span class="font-mono">{{ device.serial_number }}</span>
                                 </p>
                                 {% if device.peripherals %}
                                     <p class="text-xs text-gray-500 mt-0.5">Peripherals: {{ device.peripherals }}</p>
                                 {% endif %}
                             </div>
-                            <div class="text-xs text-gray-400">
-                                {{ device.repairs.count }} repair{{ device.repairs.count|pluralize }}
+                            <!-- Right side: repair count + Create Repair button -->
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs text-gray-400">
+                                    {{ device.repairs.count }} repair{{ device.repairs.count|pluralize }}
+                                </span>
+                                <a href="{% url 'devices:edit' device.pk %}"
+                                class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
+                                    Edit
+                                </a>
+                                <a href="{% url 'repairs:create' %}?device={{ device.pk }}"
+                                class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition">
+                                    + Repair
+                                </a>
                             </div>
                         </div>
                     </div>
