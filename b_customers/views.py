@@ -53,6 +53,7 @@ def customer_create(request):
 @login_required
 def customer_edit(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
+    next_url = request.GET.get("next")  # ← Get next parameter
 
     if request.method == "POST":
         form = CustomerForm(request.POST, instance=customer)
@@ -61,6 +62,9 @@ def customer_edit(request, pk):
             messages.success(
                 request, f"Customer {customer.full_name} updated successfully."
             )
+            # ← Smart redirect
+            if next_url:
+                return redirect(next_url)
             return redirect("customers:detail", pk=customer.pk)
     else:
         form = CustomerForm(instance=customer)
@@ -72,5 +76,6 @@ def customer_edit(request, pk):
             "form": form,
             "is_edit": True,
             "customer": customer,
+            "next": next_url,
         },
     )

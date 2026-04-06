@@ -79,7 +79,7 @@
                         class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">
                     {% if is_edit %}Save Changes{% else %}Create Customer{% endif %}
                 </button>
-                <a href="{% if is_edit %}{% url 'customers:detail' customer.pk %}{% else %}{% url 'customers:list' %}{% endif %}"
+                <a href="{% if next %}{{ next }}{% elif is_edit %}{% url 'customers:detail' customer.pk %}{% else %}{% url 'customers:list' %}{% endif %}"
                 class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition duration-200">
                     Cancel
                 </a>

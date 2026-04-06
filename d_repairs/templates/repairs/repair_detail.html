@@ -135,8 +135,8 @@
                         <h3 class="text-xs text-blue-400 uppercase tracking-wider font-semibold">
                             Intake Information (Front Desk)
                         </h3>
-                        <a href="{% url 'repairs:edit_intake' repair.pk %}"
-                        class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
+                        <a href="{% url 'repairs:edit_intake' repair.pk %}?next={{ request.path|urlencode }}"
+                            class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
                             Edit
                         </a>
                     </div>
@@ -162,7 +162,7 @@
                         <h3 class="text-xs text-purple-400 uppercase tracking-wider font-semibold">
                             Technical Findings (Technician)
                         </h3>
-                        <a href="{% url 'repairs:edit_technical' repair.pk %}"
+                        <a href="{% url 'repairs:edit_technical' repair.pk %}?next={{ request.path|urlencode }}"
                         class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
                             Edit
                         </a>

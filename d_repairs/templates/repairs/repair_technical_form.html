@@ -79,8 +79,8 @@
                             class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200">
                         Save Changes
                     </button>
-                    <a href="{% url 'repairs:detail' repair.pk %}"
-                       class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition duration-200">
+                    <a href="{% if next %}{{ next }}{% else %}{% url 'repairs:detail' repair.pk %}{% endif %}"
+                        class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition duration-200">
                         Cancel
                     </a>
                 </div>
