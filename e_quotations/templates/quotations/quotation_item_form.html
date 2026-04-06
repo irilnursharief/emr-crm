@@ -3,82 +3,80 @@
 {% block title %}{% if is_edit %}Edit Quotation Item{% else %}Add Quotation Item{% endif %}{% endblock %}
 {% block page_title %}{% if is_edit %}Edit Quotation Item{% else %}Add Quotation Item{% endif %}{% endblock %}
 {% block page_subtitle %}
-    <p class="mt-1 text-sm text-gray-400">
+    <p class="mt-1 text-sm text-secondary">
         Quotation for Repair #{{ repair.id|stringformat:"04d" }} — {{ repair.device.customer.full_name }}
     </p>
 {% endblock %}
 
 {% block content %}
 <div class="max-w-3xl">
-    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <form method="POST">
             {% csrf_token %}
 
             <div class="space-y-6">
-
                 <div>
-                    <label for="{{ form.item_type.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                        Item Type <span class="text-red-400">*</span>
+                    <label for="{{ form.item_type.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Item Type <span class="text-red-500">*</span>
                     </label>
                     {{ form.item_type }}
                     {% if form.item_type.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.item_type.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.item_type.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <div>
-                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                        Description <span class="text-red-400">*</span>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Description <span class="text-red-500">*</span>
                     </label>
                     {{ form.description }}
                     {% if form.description.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.description.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="{{ form.quantity.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                            Quantity <span class="text-red-400">*</span>
+                        <label for="{{ form.quantity.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                            Quantity <span class="text-red-500">*</span>
                         </label>
                         {{ form.quantity }}
                         {% if form.quantity.errors %}
-                            <p class="mt-1 text-sm text-red-400">{{ form.quantity.errors.0 }}</p>
+                            <p class="mt-1 text-sm text-red-600">{{ form.quantity.errors.0 }}</p>
                         {% endif %}
                     </div>
 
                     <div>
-                        <label for="{{ form.unit_price.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                            Unit Price <span class="text-red-400">*</span>
+                        <label for="{{ form.unit_price.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                            Unit Price <span class="text-red-500">*</span>
                         </label>
                         {{ form.unit_price }}
                         {% if form.unit_price.errors %}
-                            <p class="mt-1 text-sm text-red-400">{{ form.unit_price.errors.0 }}</p>
+                            <p class="mt-1 text-sm text-red-600">{{ form.unit_price.errors.0 }}</p>
                         {% endif %}
                     </div>
                 </div>
 
                 <div>
-                    <label for="{{ form.warranty_days.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                        Warranty Days <span class="text-gray-500 font-normal">(optional)</span>
+                    <label for="{{ form.warranty_days.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Warranty Days <span class="text-secondary font-normal">(optional)</span>
                     </label>
                     {{ form.warranty_days }}
                     {% if form.warranty_days.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.warranty_days.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.warranty_days.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <div class="pt-4 flex items-center gap-4">
                     <button type="submit"
-                            class="cursor-pointer px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200">
+                            class="cursor-pointer px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200 shadow-sm">
                         {% if is_edit %}Save Changes{% else %}Add Item{% endif %}
                     </button>
                     <a href="{% url 'quotations:detail' quotation.pk %}"
-                       class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition duration-200">
+                       class="px-6 py-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-xl transition duration-200 shadow-sm">
                         Cancel
                     </a>
                 </div>
-
             </div>
         </form>
     </div>

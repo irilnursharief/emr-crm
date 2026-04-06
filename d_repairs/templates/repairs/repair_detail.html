@@ -3,22 +3,22 @@
 {% block title %}Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
 {% block page_title %}Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
 {% block page_subtitle %}
-    <p class="mt-1 text-sm text-gray-400">
+    <p class="mt-1 text-sm text-secondary">
         {{ repair.device.customer.full_name }} —
         {{ repair.device.brand }} {{ repair.device.model }}
-        <span class="font-mono">({{ repair.device.serial_number }})</span>
+        <span class="font-mono text-gray-700">({{ repair.device.serial_number }})</span>
     </p>
 {% endblock %}
 
 {% block content %}
 
-<!-- Hidden Radio Inputs MUST be before the labels for CSS sibling selectors to work -->
+<!-- Hidden Radio Inputs -->
 <input type="radio" name="tabs" id="tab-overview" class="hidden peer/overview" checked>
 <input type="radio" name="tabs" id="tab-quotation" class="hidden peer/quotation">
 <input type="radio" name="tabs" id="tab-journal" class="hidden peer/journal">
 
 <!-- Tab Navigation -->
-<div class="mb-6 border-b border-gray-700">
+<div class="mb-6 border-b border-gray-200">
     <nav class="flex space-x-1">
         <label for="tab-overview"
                class="tab-label cursor-pointer px-5 py-3 text-sm font-medium rounded-t-lg transition-colors duration-200">
@@ -38,179 +38,172 @@
 <!-- TAB 1: Overview -->
 <div class="hidden peer-checked/overview:block">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         <!-- Left Column -->
         <div class="lg:col-span-1 space-y-6">
-
             <!-- Repair Status -->
-            <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
-                <h2 class="text-white font-semibold mb-4">Repair Status</h2>
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <h2 class="text-primary font-semibold mb-4">Repair Status</h2>
                 <dl class="space-y-3">
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase tracking-wider">Status</dt>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Status</dt>
                         <dd class="mt-1">
                             {% if repair.status == 'pending' %}
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400">{{ repair.get_status_display }}</span>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">{{ repair.get_status_display }}</span>
                             {% elif repair.status == 'in_progress' %}
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400">{{ repair.get_status_display }}</span>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{{ repair.get_status_display }}</span>
                             {% elif repair.status == 'awaiting_approval' %}
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400">{{ repair.get_status_display }}</span>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">{{ repair.get_status_display }}</span>
                             {% elif repair.status == 'completed' %}
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400">{{ repair.get_status_display }}</span>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">{{ repair.get_status_display }}</span>
                             {% elif repair.status == 'released' %}
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400">{{ repair.get_status_display }}</span>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ repair.get_status_display }}</span>
                             {% endif %}
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase tracking-wider">Assigned To</dt>
-                        <dd class="text-white mt-1">
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Assigned To</dt>
+                        <dd class="text-primary mt-1">
                             {% if repair.assigned_to %}
                                 {{ repair.assigned_to.get_full_name|default:repair.assigned_to.username }}
                             {% else %}
-                                <span class="text-gray-500">Unassigned</span>
+                                <span class="text-secondary">Unassigned</span>
                             {% endif %}
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase tracking-wider">Created By</dt>
-                        <dd class="text-white mt-1">
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Created By</dt>
+                        <dd class="text-primary mt-1">
                             {% if repair.created_by %}
                                 {{ repair.created_by.get_full_name|default:repair.created_by.username }}
                             {% else %}
-                                <span class="text-gray-500">—</span>
+                                <span class="text-secondary">—</span>
                             {% endif %}
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase tracking-wider">Date Created</dt>
-                        <dd class="text-white mt-1">{{ repair.created_at|date:"M d, Y" }}</dd>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Date Created</dt>
+                        <dd class="text-gray-900 mt-1">{{ repair.created_at|date:"M d, Y" }}</dd>
                     </div>
                 </dl>
             </div>
 
             <!-- Customer & Device -->
-            <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
-                <h2 class="text-white font-semibold mb-4">Customer & Device</h2>
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <h2 class="text-primary font-semibold mb-4">Customer & Device</h2>
                 <dl class="space-y-3">
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase tracking-wider">Customer</dt>
-                        <dd class="text-white mt-1">
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Customer</dt>
+                        <dd class="text-primary mt-1">
                             <a href="{% url 'customers:detail' repair.device.customer.pk %}"
-                               class="text-blue-400 hover:underline">
+                               class="text-blue-600 hover:underline">
                                 {{ repair.device.customer.full_name }}
                             </a>
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase tracking-wider">Device</dt>
-                        <dd class="text-white mt-1">{{ repair.device.brand }} {{ repair.device.model }}</dd>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Device</dt>
+                        <dd class="text-primary mt-1">{{ repair.device.brand }} {{ repair.device.model }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase tracking-wider">Type</dt>
-                        <dd class="text-white mt-1">{{ repair.device.get_type_display }}</dd>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Type</dt>
+                        <dd class="text-gray-900 mt-1">{{ repair.device.get_type_display }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase tracking-wider">Serial Number</dt>
-                        <dd class="text-white font-mono mt-1">{{ repair.device.serial_number }}</dd>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Serial Number</dt>
+                        <dd class="text-primary font-mono mt-1">{{ repair.device.serial_number }}</dd>
                     </div>
                     {% if repair.device.peripherals %}
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase tracking-wider">Peripherals</dt>
-                        <dd class="text-white mt-1">{{ repair.device.peripherals }}</dd>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Peripherals</dt>
+                        <dd class="text-gray-900 mt-1">{{ repair.device.peripherals }}</dd>
                     </div>
                     {% endif %}
                 </dl>
             </div>
-
         </div>
 
         <!-- Right Column: Repair Details -->
         <div class="lg:col-span-2">
-            <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
-                <h2 class="text-white font-semibold mb-4">Repair Details</h2>
-
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <h2 class="text-primary font-semibold mb-4">Repair Details</h2>
                 <div class="mb-6">
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-xs text-blue-400 uppercase tracking-wider font-semibold">
+                        <h3 class="text-xs text-blue-600 uppercase tracking-wider font-semibold">
                             Intake Information (Front Desk)
                         </h3>
                         <a href="{% url 'repairs:edit_intake' repair.pk %}?next={{ request.path|urlencode }}"
-                            class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
+                            class="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs rounded-lg transition shadow-sm">
                             Edit
                         </a>
                     </div>
                     <dl class="space-y-3">
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">Issue Category</dt>
-                            <dd class="text-white mt-1">{{ repair.issue_category }}</dd>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Issue Category</dt>
+                            <dd class="text-primary mt-1">{{ repair.issue_category }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">Issue Description</dt>
-                            <dd class="text-white mt-1">{{ repair.issue_description }}</dd>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Issue Description</dt>
+                            <dd class="text-gray-900 mt-1">{{ repair.issue_description }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">VMI (Initial Inspection)</dt>
-                            <dd class="text-white mt-1">{{ repair.vmi }}</dd>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">VMI (Initial Inspection)</dt>
+                            <dd class="text-gray-900 mt-1">{{ repair.vmi }}</dd>
                         </div>
                     </dl>
                 </div>
 
-                <div class="pt-4 border-t border-gray-700">
+                <div class="pt-4 border-t border-gray-200">
                     {% if user.is_technician or user.is_admin %}
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-xs text-purple-400 uppercase tracking-wider font-semibold">
+                        <h3 class="text-xs text-purple-600 uppercase tracking-wider font-semibold">
                             Technical Findings (Technician)
                         </h3>
                         <a href="{% url 'repairs:edit_technical' repair.pk %}?next={{ request.path|urlencode }}"
-                        class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
+                        class="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs rounded-lg transition shadow-sm">
                             Edit
                         </a>
                     </div>
                     {% else %}
-                    <h3 class="text-xs text-purple-400 uppercase tracking-wider font-semibold mb-3">
+                    <h3 class="text-xs text-purple-600 uppercase tracking-wider font-semibold mb-3">
                         Technical Findings (Technician)
                     </h3>
                     {% endif %}
                     <dl class="space-y-3">
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">MI (Technical Inspection)</dt>
-                            <dd class="text-white mt-1">{{ repair.mi|default:"Not yet recorded." }}</dd>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">MI (Technical Inspection)</dt>
+                            <dd class="text-gray-900 mt-1">{{ repair.mi|default:"Not yet recorded." }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">Diagnosis</dt>
-                            <dd class="text-white mt-1">{{ repair.diagnosis|default:"Not yet recorded." }}</dd>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Diagnosis</dt>
+                            <dd class="text-gray-900 mt-1">{{ repair.diagnosis|default:"Not yet recorded." }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">Recommendation</dt>
-                            <dd class="text-white mt-1">{{ repair.recommendation|default:"Not yet recorded." }}</dd>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Recommendation</dt>
+                            <dd class="text-gray-900 mt-1">{{ repair.recommendation|default:"Not yet recorded." }}</dd>
                         </div>
                     </dl>
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
 <!-- TAB 2: Quotation & Payments -->
 <div class="hidden peer-checked/quotation:block">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         <!-- Left: Financial Summary -->
         <div class="lg:col-span-1">
-            <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-white font-semibold">Financial Summary</h2>
-
+                    <h2 class="text-primary font-semibold">Financial Summary</h2>
                     {% if quotation %}
                         <a href="{% url 'quotations:detail' quotation.pk %}?next={{ request.path|urlencode }}"
-                        class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition">
+                        class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition shadow-sm">
                             Manage Quotation
                         </a>
                     {% else %}
                         <a href="{% url 'quotations:create' repair.pk %}?next={{ request.path|urlencode }}"
-                        class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition">
+                        class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition shadow-sm">
                             + Create Quotation
                         </a>
                     {% endif %}
@@ -219,54 +212,47 @@
                 {% if quotation %}
                     <dl class="space-y-3">
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">Quotation Status</dt>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Quotation Status</dt>
                             <dd class="mt-1">
                                 {% if quotation.status == 'draft' %}
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400">{{ quotation.get_status_display }}</span>
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ quotation.get_status_display }}</span>
                                 {% elif quotation.status == 'sent' %}
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400">{{ quotation.get_status_display }}</span>
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{{ quotation.get_status_display }}</span>
                                 {% elif quotation.status == 'approved' %}
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400">{{ quotation.get_status_display }}</span>
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">{{ quotation.get_status_display }}</span>
                                 {% elif quotation.status == 'rejected' %}
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400">{{ quotation.get_status_display }}</span>
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">{{ quotation.get_status_display }}</span>
                                 {% endif %}
                             </dd>
                         </div>
-
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">Subtotal</dt>
-                            <dd class="text-white mt-1">₱ {{ quotation.subtotal|floatformat:2 }}</dd>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Subtotal</dt>
+                            <dd class="text-primary mt-1">₱ {{ quotation.subtotal|floatformat:2 }}</dd>
                         </div>
-
                         {% if quotation.discount_amount %}
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">Discount</dt>
-                            <dd class="text-red-400 mt-1">- ₱ {{ quotation.discount_amount|floatformat:2 }}</dd>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Discount</dt>
+                            <dd class="text-red-600 mt-1">- ₱ {{ quotation.discount_amount|floatformat:2 }}</dd>
                         </div>
                         {% endif %}
-
-                        <div class="pt-2 border-t border-gray-700">
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">Total</dt>
-                            <dd class="text-white font-bold text-lg mt-1">₱ {{ quotation.total|floatformat:2 }}</dd>
+                        <div class="pt-2 border-t border-gray-200">
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Total</dt>
+                            <dd class="text-primary font-bold text-lg mt-1">₱ {{ quotation.total|floatformat:2 }}</dd>
                         </div>
-
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">Total Paid</dt>
-                            <dd class="text-green-400 mt-1">₱ {{ repair.total_paid|floatformat:2 }}</dd>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Total Paid</dt>
+                            <dd class="text-green-600 mt-1">₱ {{ repair.total_paid|floatformat:2 }}</dd>
                         </div>
-
-                        <div class="pt-2 border-t border-gray-700">
-                            <dt class="text-xs text-gray-400 uppercase tracking-wider">Balance Due</dt>
-                            <dd class="mt-1 {% if repair.balance_due > 0 %}text-red-400 font-bold{% else %}text-green-400{% endif %}">
+                        <div class="pt-2 border-t border-gray-200">
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Balance Due</dt>
+                            <dd class="mt-1 {% if repair.balance_due > 0 %}text-red-600 font-bold{% else %}text-green-600{% endif %}">
                                 ₱ {{ repair.balance_due|floatformat:2 }}
                             </dd>
                         </div>
                     </dl>
-
                 {% else %}
-                    <p class="text-gray-500 text-sm">No quotation created yet. Create one to compute totals and balance due.</p>
-
-                    <div class="mt-4 text-xs text-gray-500">
+                    <p class="text-secondary text-sm">No quotation created yet. Create one to compute totals and balance due.</p>
+                    <div class="mt-4 text-xs text-secondary">
                         Tip: Add line items (Parts/Labor/Fees) and apply discounts in the quotation screen.
                     </div>
                 {% endif %}
@@ -275,16 +261,14 @@
 
         <!-- Right: Quotation Items + Payment History -->
         <div class="lg:col-span-2 space-y-6">
-
-            <!-- Quotation Items -->
             {% if quotation %}
-            <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-700">
-                    <h2 class="text-white font-semibold">Quotation Items</h2>
+            <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-primary font-semibold">Quotation Items</h2>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
-                        <thead class="bg-gray-900/40 text-gray-400">
+                        <thead class="bg-gray-50 text-secondary">
                             <tr>
                                 <th class="text-left font-medium px-6 py-3">Description</th>
                                 <th class="text-left font-medium px-6 py-3">Type</th>
@@ -294,15 +278,15 @@
                                 <th class="text-left font-medium px-6 py-3">Warranty</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-700">
+                        <tbody class="divide-y divide-gray-200">
                             {% for item in quotation_items %}
-                                <tr class="hover:bg-gray-700/30">
-                                    <td class="px-6 py-4 text-white">{{ item.description }}</td>
-                                    <td class="px-6 py-4 text-gray-400">{{ item.get_item_type_display }}</td>
-                                    <td class="px-6 py-4 text-gray-400">{{ item.quantity }}</td>
-                                    <td class="px-6 py-4 text-gray-400">₱ {{ item.unit_price|floatformat:2 }}</td>
-                                    <td class="px-6 py-4 text-white">₱ {{ item.subtotal|floatformat:2 }}</td>
-                                    <td class="px-6 py-4 text-gray-400">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-primary">{{ item.description }}</td>
+                                    <td class="px-6 py-4 text-secondary">{{ item.get_item_type_display }}</td>
+                                    <td class="px-6 py-4 text-secondary">{{ item.quantity }}</td>
+                                    <td class="px-6 py-4 text-secondary">₱ {{ item.unit_price|floatformat:2 }}</td>
+                                    <td class="px-6 py-4 text-primary font-medium">₱ {{ item.subtotal|floatformat:2 }}</td>
+                                    <td class="px-6 py-4 text-secondary">
                                         {% if item.warranty_days %}
                                             {{ item.warranty_days }} day{{ item.warranty_days|pluralize }}
                                         {% else %}
@@ -312,7 +296,7 @@
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td class="px-6 py-8 text-center text-gray-400" colspan="6">
+                                    <td class="px-6 py-8 text-center text-secondary" colspan="6">
                                         No line items yet.
                                     </td>
                                 </tr>
@@ -323,18 +307,17 @@
             </div>
             {% endif %}
 
-            <!-- Payment History -->
-            <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
-                    <h2 class="text-white font-semibold">Payment History</h2>
+            <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <h2 class="text-primary font-semibold">Payment History</h2>
                     <a href="{% url 'payments:create' %}?repair={{ repair.pk }}&next={{ request.path|urlencode }}"
-                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition">
+                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition shadow-sm">
                         + Add Payment
                     </a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
-                        <thead class="bg-gray-900/40 text-gray-400">
+                        <thead class="bg-gray-50 text-secondary">
                             <tr>
                                 <th class="text-left font-medium px-6 py-3">Amount</th>
                                 <th class="text-left font-medium px-6 py-3">Type</th>
@@ -343,18 +326,18 @@
                                 <th class="text-left font-medium px-6 py-3">Date</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-700">
+                        <tbody class="divide-y divide-gray-200">
                             {% for payment in repair.payments.all %}
-                                <tr class="hover:bg-gray-700/30">
-                                    <td class="px-6 py-4 text-green-400 font-medium">₱ {{ payment.amount|floatformat:2 }}</td>
-                                    <td class="px-6 py-4 text-gray-300">{{ payment.get_payment_type_display }}</td>
-                                    <td class="px-6 py-4 text-gray-400">{{ payment.get_mode_of_payment_display }}</td>
-                                    <td class="px-6 py-4 text-gray-400 font-mono">{{ payment.reference_number|default:"—" }}</td>
-                                    <td class="px-6 py-4 text-gray-400">{{ payment.created_at|date:"M d, Y" }}</td>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-green-600 font-medium">₱ {{ payment.amount|floatformat:2 }}</td>
+                                    <td class="px-6 py-4 text-primary">{{ payment.get_payment_type_display }}</td>
+                                    <td class="px-6 py-4 text-secondary">{{ payment.get_mode_of_payment_display }}</td>
+                                    <td class="px-6 py-4 text-secondary font-mono">{{ payment.reference_number|default:"—" }}</td>
+                                    <td class="px-6 py-4 text-secondary">{{ payment.created_at|date:"M d, Y" }}</td>
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td class="px-6 py-8 text-center text-gray-400" colspan="5">
+                                    <td class="px-6 py-8 text-center text-secondary" colspan="5">
                                         No payments recorded yet.
                                     </td>
                                 </tr>
@@ -363,7 +346,6 @@
                     </table>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
@@ -371,19 +353,18 @@
 <!-- TAB 3: Repair Journal -->
 <div class="hidden peer-checked/journal:block">
     <div class="space-y-6">
-
         <!-- Add Note Form -->
-        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
-            <h3 class="text-white font-semibold mb-4">Add Note</h3>
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <h3 class="text-primary font-semibold mb-4">Add Note</h3>
             <form method="POST" action="{% url 'repairs:add_note' repair.pk %}">
                 {% csrf_token %}
                 <div class="space-y-4">
                     {{ form.content }}
                     {% if form.content.errors %}
-                        <p class="text-sm text-red-400">{{ form.content.errors.0 }}</p>
+                        <p class="text-sm text-red-600">{{ form.content.errors.0 }}</p>
                     {% endif %}
                     <button type="submit"
-                            class="cursor-pointer px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-xl transition duration-200">
+                            class="cursor-pointer px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-xl transition duration-200 shadow-sm">
                         Add Note
                     </button>
                 </div>
@@ -391,108 +372,77 @@
         </div>
 
         <!-- Notes List -->
-        <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-700">
-                <h2 class="text-white font-semibold">Journal Entries</h2>
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-primary font-semibold">Journal Entries</h2>
             </div>
-            <div class="divide-y divide-gray-700">
+            <div class="divide-y divide-gray-200">
                 {% for note in repair.notes.all %}
-                    <div class="px-6 py-4">
+                    <div class="px-6 py-4 hover:bg-gray-50">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-white">
+                            <span class="text-sm font-medium text-primary">
                                 {{ note.created_by.get_full_name|default:note.created_by.username }}
                             </span>
-                            <span class="text-xs text-gray-400">
+                            <span class="text-xs text-secondary">
                                 {{ note.created_at|date:"M d, Y H:i" }}
                             </span>
                         </div>
-                        <p class="text-gray-300 text-sm">{{ note.content }}</p>
+                        <p class="text-gray-700 text-sm">{{ note.content }}</p>
                     </div>
                 {% empty %}
-                    <div class="px-6 py-8 text-center text-gray-400 text-sm">
+                    <div class="px-6 py-8 text-center text-secondary text-sm">
                         No journal entries yet.
                     </div>
                 {% endfor %}
             </div>
         </div>
-
     </div>
 </div>     
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-
-    // All tab radio inputs
     const tabs = {
         overview: document.getElementById("tab-overview"),
         quotation: document.getElementById("tab-quotation"),
         journal: document.getElementById("tab-journal"),
     };
-
-    // Corresponding labels
     const labels = {
         overview: document.querySelector('label[for="tab-overview"]'),
         quotation: document.querySelector('label[for="tab-quotation"]'),
         journal: document.querySelector('label[for="tab-journal"]'),
     };
+    const activeClass = ["text-primary", "border-b-2", "border-primary"];
+    const inactiveClass = ["text-secondary"];
 
-    // Active and inactive styles
-    const activeClass = [
-        "text-white",
-        "border-b-2",
-        "border-blue-500",
-    ];
-    const inactiveClass = ["text-gray-400"];
-
-    // Function: set visual active state on a label
     function setActiveLabel(activeKey) {
         Object.keys(labels).forEach(function (key) {
             const label = labels[key];
             if (!label) return;
-
             if (key === activeKey) {
-                // Remove inactive, add active
                 label.classList.remove(...inactiveClass);
                 activeClass.forEach(cls => label.classList.add(cls));
             } else {
-                // Remove active, add inactive
                 activeClass.forEach(cls => label.classList.remove(cls));
                 label.classList.add(...inactiveClass);
             }
         });
     }
-
-    // Function: activate a tab by key
     function activateTab(key) {
-        if (tabs[key]) {
-            tabs[key].checked = true;
-        }
+        if (tabs[key]) tabs[key].checked = true;
         setActiveLabel(key);
     }
-
-    // Handle URL hash on page load
     const hash = window.location.hash;
-    if (hash === "#quotation") {
-        activateTab("quotation");
-    } else if (hash === "#journal") {
-        activateTab("journal");
-    } else {
-        // Default: Overview
-        activateTab("overview");
-    }
+    if (hash === "#quotation") activateTab("quotation");
+    else if (hash === "#journal") activateTab("journal");
+    else activateTab("overview");
 
-    // Handle tab clicks — update underline when user clicks a tab
     Object.keys(tabs).forEach(function (key) {
         const tab = tabs[key];
         if (!tab) return;
-
         tab.addEventListener("change", function () {
-            if (tab.checked) {
-                setActiveLabel(key);
-            }
+            if (tab.checked) setActiveLabel(key);
         });
     });
-
 });
 </script>
 

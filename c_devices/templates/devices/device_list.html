@@ -2,12 +2,12 @@
 
 {% block title %}Devices{% endblock %}
 {% block page_title %}Devices{% endblock %}
-{% block page_subtitle %}<p class="mt-1 text-sm text-gray-400">Manage registered customer devices.</p>{% endblock %}
+{% block page_subtitle %}<p class="mt-1 text-sm text-secondary">Manage registered customer devices.</p>{% endblock %}
 
 {% block content %}
-<div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-  <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
-    <div class="text-white font-semibold">All Devices</div>
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+  <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+    <div class="text-primary font-semibold">All Devices</div>
     <a href="{% url 'devices:create' %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition">
       Add Device
     </a>
@@ -15,7 +15,7 @@
 
   <div class="overflow-x-auto">
     <table class="min-w-full text-sm">
-      <thead class="bg-gray-900/40 text-gray-400">
+      <thead class="bg-gray-50 text-secondary">
         <tr>
           <th class="text-left font-medium px-6 py-3">Device</th>
           <th class="text-left font-medium px-6 py-3">Serial</th>
@@ -24,19 +24,19 @@
           <th class="text-left font-medium px-6 py-3">Created</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-700">
+      <tbody class="divide-y divide-gray-200">
         {% for d in devices %}
-          <tr class="hover:bg-gray-700/30 cursor-pointer"
+          <tr class="hover:bg-gray-50 cursor-pointer"
           onclick="window.location='{% url 'devices:detail' d.pk %}'">
-            <td class="px-6 py-4 text-white">{{ d.brand }} {{ d.model }}</td>
-            <td class="px-6 py-4 text-gray-300 font-mono">{{ d.serial_number }}</td>
-            <td class="px-6 py-4 text-gray-400">{{ d.get_type_display }}</td>
-            <td class="px-6 py-4 text-gray-300">{{ d.customer.full_name }}</td>
-            <td class="px-6 py-4 text-gray-400">{{ d.created_at|date:"M d, Y" }}</td>
+            <td class="px-6 py-4 text-primary font-medium">{{ d.brand }} {{ d.model }}</td>
+            <td class="px-6 py-4 text-gray-700 font-mono">{{ d.serial_number }}</td>
+            <td class="px-6 py-4 text-secondary">{{ d.get_type_display }}</td>
+            <td class="px-6 py-4 text-gray-700">{{ d.customer.full_name }}</td>
+            <td class="px-6 py-4 text-secondary">{{ d.created_at|date:"M d, Y" }}</td>
           </tr>
         {% empty %}
           <tr>
-            <td class="px-6 py-10 text-center text-gray-400" colspan="5">
+            <td class="px-6 py-10 text-center text-secondary" colspan="5">
               No devices yet.
             </td>
           </tr>

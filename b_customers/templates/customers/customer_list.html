@@ -3,12 +3,12 @@
 {% block title %}Customers{% endblock %}
 
 {% block page_title %}Customers{% endblock %}
-{% block page_subtitle %}<p class="mt-1 text-sm text-gray-400">Manage customer profiles.</p>{% endblock %}
+{% block page_subtitle %}<p class="mt-1 text-sm text-secondary">Manage customer profiles.</p>{% endblock %}
 
 {% block content %}
-<div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-  <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
-    <div class="text-white font-semibold">All Customers</div>
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+  <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+    <div class="text-primary font-semibold">All Customers</div>
     <a href="{% url 'customers:create' %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition">
       Add Customer
     </a>
@@ -16,7 +16,7 @@
 
   <div class="overflow-x-auto">
     <table class="min-w-full text-sm">
-      <thead class="bg-gray-900/40 text-gray-400">
+      <thead class="bg-gray-50 text-secondary">
         <tr>
           <th class="text-left font-medium px-6 py-3">Name</th>
           <th class="text-left font-medium px-6 py-3">Contact</th>
@@ -24,17 +24,17 @@
           <th class="text-left font-medium px-6 py-3">Created</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-700">
+      <tbody class="divide-y divide-gray-200">
       {% for c in customers %}
-          <tr class="hover:bg-gray-700/30 cursor-pointer" onclick="window.location='{% url 'customers:detail' c.pk %}'">
-              <td class="px-6 py-4 text-white">{{ c.full_name }}</td>
-              <td class="px-6 py-4">{{ c.contact_number }}</td>
-              <td class="px-6 py-4 text-gray-400">{{ c.email|default:"—" }}</td>
-              <td class="px-6 py-4 text-gray-400">{{ c.created_at|date:"M d, Y" }}</td>
+          <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{% url 'customers:detail' c.pk %}'">
+              <td class="px-6 py-4 text-primary font-medium">{{ c.full_name }}</td>
+              <td class="px-6 py-4 text-gray-700">{{ c.contact_number }}</td>
+              <td class="px-6 py-4 text-secondary">{{ c.email|default:"—" }}</td>
+              <td class="px-6 py-4 text-secondary">{{ c.created_at|date:"M d, Y" }}</td>
           </tr>
       {% empty %}
           <tr>
-              <td class="px-6 py-10 text-center text-gray-400" colspan="4">
+              <td class="px-6 py-10 text-center text-secondary" colspan="4">
                   No customers yet.
               </td>
           </tr>

@@ -3,101 +3,97 @@
 {% block title %}{% if is_edit %}Edit Device{% else %}Add Device{% endif %}{% endblock %}
 {% block page_title %}{% if is_edit %}Edit Device{% else %}Add Device{% endif %}{% endblock %}
 {% block page_subtitle %}
-    <p class="mt-1 text-sm text-gray-400">
+    <p class="mt-1 text-sm text-secondary">
         {% if is_edit %}Update device details{% else %}Register a new customer device{% endif %}
     </p>
 {% endblock %}
 
 {% block content %}
 <div class="max-w-3xl">
-    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <form method="POST">
             {% csrf_token %}
 
             <div class="space-y-6">
-
                 <!-- Customer -->
                 <div>
-                    <label for="{{ form.customer.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                        Customer <span class="text-red-400">*</span>
+                    <label for="{{ form.customer.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Customer <span class="text-red-500">*</span>
                     </label>
                     {{ form.customer }}
                     {% if form.customer.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.customer.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.customer.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
                     <!-- Type -->
                     <div>
-                        <label for="{{ form.type.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                            Device Type <span class="text-red-400">*</span>
+                        <label for="{{ form.type.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                            Device Type <span class="text-red-500">*</span>
                         </label>
                         {{ form.type }}
                         {% if form.type.errors %}
-                            <p class="mt-1 text-sm text-red-400">{{ form.type.errors.0 }}</p>
+                            <p class="mt-1 text-sm text-red-600">{{ form.type.errors.0 }}</p>
                         {% endif %}
                     </div>
 
                     <!-- Brand -->
                     <div>
-                        <label for="{{ form.brand.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                            Brand <span class="text-red-400">*</span>
+                        <label for="{{ form.brand.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                            Brand <span class="text-red-500">*</span>
                         </label>
                         {{ form.brand }}
                         {% if form.brand.errors %}
-                            <p class="mt-1 text-sm text-red-400">{{ form.brand.errors.0 }}</p>
+                            <p class="mt-1 text-sm text-red-600">{{ form.brand.errors.0 }}</p>
                         {% endif %}
                     </div>
-
                 </div>
 
                 <!-- Model -->
                 <div>
-                    <label for="{{ form.model.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                        Model <span class="text-red-400">*</span>
+                    <label for="{{ form.model.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Model <span class="text-red-500">*</span>
                     </label>
                     {{ form.model }}
                     {% if form.model.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.model.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.model.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Serial Number -->
                 <div>
-                    <label for="{{ form.serial_number.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                        Serial Number <span class="text-red-400">*</span>
+                    <label for="{{ form.serial_number.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Serial Number <span class="text-red-500">*</span>
                     </label>
                     {{ form.serial_number }}
                     {% if form.serial_number.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.serial_number.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.serial_number.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Peripherals -->
                 <div>
-                    <label for="{{ form.peripherals.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                        Peripherals <span class="text-gray-500 font-normal">(optional)</span>
+                    <label for="{{ form.peripherals.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Peripherals <span class="text-secondary font-normal">(optional)</span>
                     </label>
                     {{ form.peripherals }}
                     {% if form.peripherals.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.peripherals.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.peripherals.errors.0 }}</p>
                     {% endif %}
                 </div>
                 
                 <!-- Form Actions -->
                 <div class="mt-8 flex items-center gap-4">
                     <button type="submit"
-                            class="cursor-pointer px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200">
+                            class="cursor-pointer px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200 shadow-sm">
                         {% if is_edit %}Save Changes{% else %}Create Device{% endif %}
                     </button>
                     <a href="{% if next %}{{ next }}{% elif is_edit %}{% url 'devices:detail' device.pk %}{% else %}{% url 'devices:list' %}{% endif %}"
-                    class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition duration-200">
+                    class="px-6 py-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-xl transition duration-200 shadow-sm">
                         Cancel
                     </a>
                 </div>
-
             </div>
         </form>
     </div>
