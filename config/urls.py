@@ -10,4 +10,5 @@ urlpatterns = [
     path("devices/", include("c_devices.urls")),
     path("repairs/", include("d_repairs.urls")),
     path("payments/", include("f_payments.urls")),
+    path("quotations/", include("e_quotations.urls")),
 ]
