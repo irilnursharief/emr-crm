@@ -1,3 +1,45 @@
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+from d_repairs.models import Repair
+from .models import Payment
+from .forms import PaymentForm
 
-# Create your views here.
+
+@login_required
+def payment_create(request):
+    repair_id = request.GET.get("repair")
+    next_url = request.GET.get("next") or request.POST.get("next")
+
+    if not repair_id:
+        messages.error(request, "No repair record specified.")
+        return redirect("repairs:list")
+
+    repair = get_object_or_404(Repair, pk=repair_id)
+
+    if request.method == "POST":
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.repair = repair
+            payment.created_by = request.user
+            payment.save()
+
+            messages.success(
+                request, f"Payment of ₱{payment.amount:,.2f} recorded successfully."
+            )
+
+            # Redirect back to repair detail, anchoring to the quotation/payments tab
+            return redirect(f"{repair.get_absolute_url()}#quotation")
+    else:
+        form = PaymentForm()
+
+    return render(
+        request,
+        "payments/payment_form.html",
+        {
+            "form": form,
+            "repair": repair,
+            "next": next_url,
+        },
+    )
