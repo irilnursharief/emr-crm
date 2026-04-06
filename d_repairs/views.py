@@ -1,9 +1,15 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from c_devices.models import Device
 from .models import Repair
-from .forms import RepairCreateForm, RepairIntakeForm, RepairTechnicianForm
+from .forms import (
+    RepairCreateForm,
+    RepairIntakeForm,
+    RepairTechnicianForm,
+    RepairNoteForm,
+)
 
 
 @login_required
@@ -31,13 +37,14 @@ def repair_detail(request, pk):
         pk=pk,
     )
 
-    # Safely get quotation if it exists
     try:
         quotation = repair.quotation
         quotation_items = quotation.items.all()
     except Repair.quotation.RelatedObjectDoesNotExist:
         quotation = None
         quotation_items = []
+
+    form = RepairNoteForm()
 
     return render(
         request,
@@ -46,6 +53,7 @@ def repair_detail(request, pk):
             "repair": repair,
             "quotation": quotation,
             "quotation_items": quotation_items,
+            "form": form,
         },
     )
 
@@ -139,3 +147,20 @@ def repair_edit_technical(request, pk):
             "next": next_url,
         },
     )
+
+
+@login_required
+def repair_add_note(request, pk):
+    repair = get_object_or_404(Repair, pk=pk)
+
+    if request.method == "POST":
+        form = RepairNoteForm(request.POST)
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.repair = repair
+            note.created_by = request.user
+            note.save()
+            messages.success(request, "Note added to repair journal.")
+            return redirect(f"{reverse('repairs:detail', args=[repair.pk])}#journal")
+
+    return redirect("repairs:detail", pk=repair.pk)

@@ -77,7 +77,7 @@ class RepairNote(TimestampedModel):
     )
 
     class Meta:
-        ordering = ["created_at"]  # Chronological order (oldest first)
+        ordering = ["-created_at"]
         verbose_name = "Repair Journal Entry"
         verbose_name_plural = "Repair Journal"
 
