@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.urls import reverse
 from b_customers.models import TimestampedModel
 from c_devices.models import Device
 from decimal import Decimal
@@ -51,6 +52,9 @@ class Repair(TimestampedModel):
 
     def __str__(self):
         return f"Repair #{self.id} | {self.device}"
+
+    def get_absolute_url(self):
+        return reverse("repairs:detail", args=[self.pk])
 
     @property
     def total_paid(self):

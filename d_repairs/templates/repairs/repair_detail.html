@@ -300,8 +300,12 @@
 
             <!-- Payment History -->
             <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-700">
+                <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
                     <h2 class="text-white font-semibold">Payment History</h2>
+                    <a href="{% url 'payments:create' %}?repair={{ repair.pk }}&next={{ request.path|urlencode }}"
+                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition">
+                        + Add Payment
+                    </a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
@@ -392,13 +396,78 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const hash = window.location.hash;
-    if (hash === "#journal") {
-        const journalTab = document.getElementById("tab-journal");
-        if (journalTab) {
-            journalTab.checked = true;
-        }
+
+    // All tab radio inputs
+    const tabs = {
+        overview: document.getElementById("tab-overview"),
+        quotation: document.getElementById("tab-quotation"),
+        journal: document.getElementById("tab-journal"),
+    };
+
+    // Corresponding labels
+    const labels = {
+        overview: document.querySelector('label[for="tab-overview"]'),
+        quotation: document.querySelector('label[for="tab-quotation"]'),
+        journal: document.querySelector('label[for="tab-journal"]'),
+    };
+
+    // Active and inactive styles
+    const activeClass = [
+        "text-white",
+        "border-b-2",
+        "border-blue-500",
+    ];
+    const inactiveClass = ["text-gray-400"];
+
+    // Function: set visual active state on a label
+    function setActiveLabel(activeKey) {
+        Object.keys(labels).forEach(function (key) {
+            const label = labels[key];
+            if (!label) return;
+
+            if (key === activeKey) {
+                // Remove inactive, add active
+                label.classList.remove(...inactiveClass);
+                activeClass.forEach(cls => label.classList.add(cls));
+            } else {
+                // Remove active, add inactive
+                activeClass.forEach(cls => label.classList.remove(cls));
+                label.classList.add(...inactiveClass);
+            }
+        });
     }
+
+    // Function: activate a tab by key
+    function activateTab(key) {
+        if (tabs[key]) {
+            tabs[key].checked = true;
+        }
+        setActiveLabel(key);
+    }
+
+    // Handle URL hash on page load
+    const hash = window.location.hash;
+    if (hash === "#quotation") {
+        activateTab("quotation");
+    } else if (hash === "#journal") {
+        activateTab("journal");
+    } else {
+        // Default: Overview
+        activateTab("overview");
+    }
+
+    // Handle tab clicks — update underline when user clicks a tab
+    Object.keys(tabs).forEach(function (key) {
+        const tab = tabs[key];
+        if (!tab) return;
+
+        tab.addEventListener("change", function () {
+            if (tab.checked) {
+                setActiveLabel(key);
+            }
+        });
+    });
+
 });
 </script>
 
