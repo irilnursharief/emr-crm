@@ -341,30 +341,65 @@
 
 <!-- TAB 3: Repair Journal -->
 <div class="hidden peer-checked/journal:block">
-    <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-700">
-            <h2 class="text-white font-semibold">Repair Journal</h2>
+    <div class="space-y-6">
+
+        <!-- Add Note Form -->
+        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <h3 class="text-white font-semibold mb-4">Add Note</h3>
+            <form method="POST" action="{% url 'repairs:add_note' repair.pk %}">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                        <p class="text-sm text-red-400">{{ form.content.errors.0 }}</p>
+                    {% endif %}
+                    <button type="submit"
+                            class="cursor-pointer px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-xl transition duration-200">
+                        Add Note
+                    </button>
+                </div>
+            </form>
         </div>
-        <div class="divide-y divide-gray-700">
-            {% for note in repair.notes.all %}
-                <div class="px-6 py-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-white">
-                            {{ note.created_by.get_full_name|default:note.created_by.username }}
-                        </span>
-                        <span class="text-xs text-gray-400">
-                            {{ note.created_at|date:"M d, Y H:i" }}
-                        </span>
+
+        <!-- Notes List -->
+        <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-700">
+                <h2 class="text-white font-semibold">Journal Entries</h2>
+            </div>
+            <div class="divide-y divide-gray-700">
+                {% for note in repair.notes.all %}
+                    <div class="px-6 py-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-white">
+                                {{ note.created_by.get_full_name|default:note.created_by.username }}
+                            </span>
+                            <span class="text-xs text-gray-400">
+                                {{ note.created_at|date:"M d, Y H:i" }}
+                            </span>
+                        </div>
+                        <p class="text-gray-300 text-sm">{{ note.content }}</p>
                     </div>
-                    <p class="text-gray-300 text-sm">{{ note.content }}</p>
-                </div>
-            {% empty %}
-                <div class="px-6 py-8 text-center text-gray-400 text-sm">
-                    No journal entries yet.
-                </div>
-            {% endfor %}
+                {% empty %}
+                    <div class="px-6 py-8 text-center text-gray-400 text-sm">
+                        No journal entries yet.
+                    </div>
+                {% endfor %}
+            </div>
         </div>
+
     </div>
-</div>
+</div>     
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const hash = window.location.hash;
+    if (hash === "#journal") {
+        const journalTab = document.getElementById("tab-journal");
+        if (journalTab) {
+            journalTab.checked = true;
+        }
+    }
+});
+</script>
 
 {% endblock %}

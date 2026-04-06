@@ -89,7 +89,7 @@
                 <!-- Form Actions -->
                 <div class="mt-8 flex items-center gap-4">
                     <button type="submit"
-                            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200">
+                            class="cursor-pointer px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200">
                         {% if is_edit %}Save Changes{% else %}Create Device{% endif %}
                     </button>
                     <a href="{% if next %}{{ next }}{% elif is_edit %}{% url 'devices:detail' device.pk %}{% else %}{% url 'devices:list' %}{% endif %}"

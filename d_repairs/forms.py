@@ -1,5 +1,5 @@
 from django import forms
-from .models import Repair
+from .models import Repair, RepairNote
 
 FIELD_CLASS = "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
 TEXTAREA_CLASS = FIELD_CLASS
@@ -116,4 +116,19 @@ class RepairTechnicianForm(forms.ModelForm):
             ),
             "status": forms.Select(attrs={"class": SELECT_CLASS}),
             "assigned_to": forms.Select(attrs={"class": SELECT_CLASS}),
+        }
+
+
+class RepairNoteForm(forms.ModelForm):
+    class Meta:
+        model = RepairNote
+        fields = ["content"]
+        widgets = {
+            "content": forms.Textarea(
+                attrs={
+                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
+                    "placeholder": "Add a repair note...",
+                    "rows": 4,
+                }
+            ),
         }
