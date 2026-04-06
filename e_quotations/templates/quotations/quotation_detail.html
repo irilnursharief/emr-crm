@@ -1,0 +1,161 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Quotation — Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
+{% block page_title %}Quotation{% endblock %}
+{% block page_subtitle %}
+    <p class="mt-1 text-sm text-gray-400">
+        Repair #{{ repair.id|stringformat:"04d" }} — {{ repair.device.customer.full_name }}
+    </p>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left Column: Quotation Info & Actions -->
+    <div class="lg:col-span-1 space-y-6">
+
+        <!-- Status Card -->
+        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <h2 class="text-white font-semibold mb-4">Quotation Status</h2>
+            
+            <div class="mb-4">
+                {% if quotation.status == 'draft' %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400">Draft</span>
+                {% elif quotation.status == 'sent' %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400">Sent to Customer</span>
+                {% elif quotation.status == 'approved' %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400">Approved</span>
+                {% elif quotation.status == 'rejected' %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400">Rejected</span>
+                {% endif %}
+            </div>
+
+            {% if can_edit %}
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Update Status</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <p class="mt-1 text-sm text-red-400">{{ form.status.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Discount Amount</label>
+                    {{ form.discount_amount }}
+                    {% if form.discount_amount.errors %}
+                        <p class="mt-1 text-sm text-red-400">{{ form.discount_amount.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+                    Save Changes
+                </button>
+            </form>
+            {% else %}
+                <p class="text-sm text-gray-400">
+                    This quotation is {{ quotation.get_status_display|lower }} and cannot be edited.
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Back to Repair -->
+        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <a href="{% url 'repairs:detail' repair.pk %}" class="w-full inline-flex justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition">
+                ← Back to Repair Details
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Right Column: Line Items -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <!-- Line Items Table -->
+        <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                <h2 class="text-white font-semibold">Line Items</h2>
+                {% if can_edit %}
+                <a href="{% url 'quotations:item_add' quotation.pk %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition">
+                    + Add Item
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-900/40 text-gray-400">
+                        <tr>
+                            <th class="text-left font-medium px-6 py-3">Description</th>
+                            <th class="text-left font-medium px-6 py-3">Type</th>
+                            <th class="text-left font-medium px-6 py-3">Qty</th>
+                            <th class="text-left font-medium px-6 py-3">Unit Price</th>
+                            <th class="text-left font-medium px-6 py-3">Subtotal</th>
+                            {% if can_edit %}
+                            <th class="text-left font-medium px-6 py-3">Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        {% for item in items %}
+                            <tr class="hover:bg-gray-700/30">
+                                <td class="px-6 py-4 text-white">{{ item.description }}</td>
+                                <td class="px-6 py-4 text-gray-400">{{ item.get_item_type_display }}</td>
+                                <td class="px-6 py-4 text-gray-400">{{ item.quantity }}</td>
+                                <td class="px-6 py-4 text-gray-400">₱ {{ item.unit_price|floatformat:2 }}</td>
+                                <td class="px-6 py-4 text-white">₱ {{ item.subtotal|floatformat:2 }}</td>
+                                {% if can_edit %}
+                                <td class="px-6 py-4">
+                                    <a href="{% url 'quotations:item_edit' item.pk %}" class="text-blue-400 hover:text-blue-300 text-sm mr-3">
+                                        Edit
+                                    </a>
+                                    <form method="POST" action="{% url 'quotations:item_delete' item.pk %}" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-400 hover:text-red-300 text-sm cursor-pointer">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td class="px-6 py-8 text-center text-gray-400" colspan="{% if can_edit %}6{% else %}5{% endif %}">
+                                    No line items yet. 
+                                    {% if can_edit %}
+                                    <a href="{% url 'quotations:item_add' quotation.pk %}" class="text-blue-400 hover:underline">Add your first item</a>.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <h2 class="text-white font-semibold mb-4">Financial Summary</h2>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-gray-400">Subtotal</dt>
+                    <dd class="text-white">₱ {{ subtotal|floatformat:2 }}</dd>
+                </div>
+                {% if discount > 0 %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-400">Discount</dt>
+                    <dd class="text-red-400">- ₱ {{ discount|floatformat:2 }}</dd>
+                </div>
+                {% endif %}
+                <div class="pt-2 border-t border-gray-700 flex justify-between">
+                    <dt class="text-gray-400 font-medium">Total</dt>
+                    <dd class="text-white font-bold text-lg">₱ {{ total|floatformat:2 }}</dd>
+                </div>
+            </dl>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
