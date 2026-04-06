@@ -16,7 +16,7 @@
         <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
              <div class="flex items-center justify-between mb-4">
                 <h2 class="text-white font-semibold">Contact Information</h2>
-                <a href="{% url 'customers:edit' customer.pk %}"
+                <a href="{% url 'customers:edit' customer.pk %}?next={{ request.path|urlencode }}"
                 class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
                     Edit
                 </a>
@@ -84,12 +84,13 @@
                                 <span class="text-xs text-gray-400">
                                     {{ device.repairs.count }} repair{{ device.repairs.count|pluralize }}
                                 </span>
-                                <a href="{% url 'devices:edit' device.pk %}"
+                                <a href="{% url 'devices:edit' device.pk %}?next={{ request.path|urlencode }}"
                                 class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
                                     Edit
                                 </a>
-                                <a href="{% url 'repairs:create' %}?device={{ device.pk }}"
-                                class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition">
+                                
+                                <a href="{% url 'devices:edit' device.pk %}?next={{ request.path|urlencode }}"
+                                class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
                                     + Repair
                                 </a>
                             </div>

@@ -45,32 +45,6 @@ def device_create(request):
 
 
 @login_required
-def device_edit(request, pk):
-    device = get_object_or_404(Device, pk=pk)
-
-    if request.method == "POST":
-        form = DeviceForm(request.POST, instance=device)
-        if form.is_valid():
-            form.save()
-            messages.success(
-                request, f"Device {device.brand} {device.model} updated successfully."
-            )
-            return redirect("customers:detail", pk=device.customer.pk)
-    else:
-        form = DeviceForm(instance=device)
-
-    return render(
-        request,
-        "devices/device_form.html",
-        {
-            "form": form,
-            "is_edit": True,
-            "device": device,
-        },
-    )
-
-
-@login_required
 def device_detail(request, pk):
     device = get_object_or_404(
         Device.objects.select_related("customer", "created_by"), pk=pk
@@ -88,5 +62,35 @@ def device_detail(request, pk):
         {
             "device": device,
             "repairs": repairs,
+        },
+    )
+
+
+@login_required
+def device_edit(request, pk):
+    device = get_object_or_404(Device, pk=pk)
+    next_url = request.GET.get("next")
+
+    if request.method == "POST":
+        form = DeviceForm(request.POST, instance=device)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request, f"Device {device.brand} {device.model} updated successfully."
+            )
+            if next_url:
+                return redirect(next_url)
+            return redirect("devices:detail", pk=device.pk)
+    else:
+        form = DeviceForm(instance=device)
+
+    return render(
+        request,
+        "devices/device_form.html",
+        {
+            "form": form,
+            "is_edit": True,
+            "device": device,
+            "next": next_url,
         },
     )

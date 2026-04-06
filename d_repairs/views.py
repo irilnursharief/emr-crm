@@ -82,6 +82,7 @@ def repair_create(request):
 @login_required
 def repair_edit_intake(request, pk):
     repair = get_object_or_404(Repair, pk=pk)
+    next_url = request.GET.get("next")
 
     if request.method == "POST":
         form = RepairIntakeForm(request.POST, instance=repair)
@@ -90,6 +91,8 @@ def repair_edit_intake(request, pk):
             messages.success(
                 request, f"Repair #{repair.id:04d} intake details updated."
             )
+            if next_url:
+                return redirect(next_url)
             return redirect("repairs:detail", pk=repair.pk)
     else:
         form = RepairIntakeForm(instance=repair)
@@ -100,6 +103,7 @@ def repair_edit_intake(request, pk):
         {
             "form": form,
             "repair": repair,
+            "next": next_url,
         },
     )
 
@@ -107,8 +111,8 @@ def repair_edit_intake(request, pk):
 @login_required
 def repair_edit_technical(request, pk):
     repair = get_object_or_404(Repair, pk=pk)
+    next_url = request.GET.get("next")
 
-    # Only technicians and admins can edit technical fields
     if not (request.user.is_technician or request.user.is_admin):
         messages.error(request, "You do not have permission to edit technical details.")
         return redirect("repairs:detail", pk=repair.pk)
@@ -120,6 +124,8 @@ def repair_edit_technical(request, pk):
             messages.success(
                 request, f"Repair #{repair.id:04d} technical details updated."
             )
+            if next_url:
+                return redirect(next_url)
             return redirect("repairs:detail", pk=repair.pk)
     else:
         form = RepairTechnicianForm(instance=repair)
@@ -130,5 +136,6 @@ def repair_edit_technical(request, pk):
         {
             "form": form,
             "repair": repair,
+            "next": next_url,
         },
     )
