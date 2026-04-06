@@ -63,7 +63,7 @@
 
     <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
       <h2 class="text-white font-semibold mb-4">Next Step</h2>
-      <a href="{% url 'repairs:create' %}?device={{ device.pk }}"
+      <a href="{% url 'repairs:create' %}?device={{ device.pk }}&next={{ request.path|urlencode }}"
          class="w-full inline-flex justify-center px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition">
         + Create Repair
       </a>

@@ -61,6 +61,7 @@ def repair_detail(request, pk):
 @login_required
 def repair_create(request):
     device_id = request.GET.get("device")
+    next_url = request.GET.get("next") or request.POST.get("next")
 
     if request.method == "POST":
         form = RepairCreateForm(request.POST)
@@ -84,7 +85,14 @@ def repair_create(request):
             except Device.DoesNotExist:
                 pass
 
-    return render(request, "repairs/repair_form.html", {"form": form})
+    return render(
+        request,
+        "repairs/repair_form.html",
+        {
+            "form": form,
+            "next": next_url,
+        },
+    )
 
 
 @login_required

@@ -89,7 +89,7 @@
                                     Edit
                                 </a>
                                 
-                                <a href="{% url 'devices:edit' device.pk %}?next={{ request.path|urlencode }}"
+                                <a href="{% url 'repairs:create' %}?device={{ device.pk }}&next={{ request.path|urlencode }}"
                                 class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg transition">
                                     + Repair
                                 </a>
