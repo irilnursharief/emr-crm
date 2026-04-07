@@ -1,5 +1,7 @@
 {% extends "base_dashboard.html" %}
 
+{% load humanize %}
+
 {% block title %}Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
 {% block page_title %}Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
 {% block page_subtitle %}
@@ -227,26 +229,26 @@
                         </div>
                         <div>
                             <dt class="text-xs text-secondary uppercase tracking-wider">Subtotal</dt>
-                            <dd class="text-primary mt-1">₱ {{ quotation.subtotal|floatformat:2 }}</dd>
+                            <dd class="text-primary mt-1">₱ {{ quotation.subtotal|floatformat:2|intcomma }}</dd>
                         </div>
                         {% if quotation.discount_amount %}
                         <div>
                             <dt class="text-xs text-secondary uppercase tracking-wider">Discount</dt>
-                            <dd class="text-red-600 mt-1">- ₱ {{ quotation.discount_amount|floatformat:2 }}</dd>
+                            <dd class="text-red-600 mt-1">- ₱ {{ quotation.discount_amount|floatformat:2|intcomma }}</dd>
                         </div>
                         {% endif %}
                         <div class="pt-2 border-t border-gray-200">
                             <dt class="text-xs text-secondary uppercase tracking-wider">Total</dt>
-                            <dd class="text-primary font-bold text-lg mt-1">₱ {{ quotation.total|floatformat:2 }}</dd>
+                            <dd class="text-primary font-bold text-lg mt-1">₱ {{ quotation.total|floatformat:2|intcomma }}</dd>
                         </div>
                         <div>
                             <dt class="text-xs text-secondary uppercase tracking-wider">Total Paid</dt>
-                            <dd class="text-green-600 mt-1">₱ {{ repair.total_paid|floatformat:2 }}</dd>
+                            <dd class="text-green-600 mt-1">₱ {{ repair.total_paid|floatformat:2|intcomma }}</dd>
                         </div>
                         <div class="pt-2 border-t border-gray-200">
                             <dt class="text-xs text-secondary uppercase tracking-wider">Balance Due</dt>
                             <dd class="mt-1 {% if repair.balance_due > 0 %}text-red-600 font-bold{% else %}text-green-600{% endif %}">
-                                ₱ {{ repair.balance_due|floatformat:2 }}
+                                ₱ {{ repair.balance_due|floatformat:2|intcomma }}
                             </dd>
                         </div>
                     </dl>
@@ -284,8 +286,8 @@
                                     <td class="px-6 py-4 text-primary">{{ item.description }}</td>
                                     <td class="px-6 py-4 text-secondary">{{ item.get_item_type_display }}</td>
                                     <td class="px-6 py-4 text-secondary">{{ item.quantity }}</td>
-                                    <td class="px-6 py-4 text-secondary">₱ {{ item.unit_price|floatformat:2 }}</td>
-                                    <td class="px-6 py-4 text-primary font-medium">₱ {{ item.subtotal|floatformat:2 }}</td>
+                                    <td class="px-6 py-4 text-secondary">₱ {{ item.unit_price|floatformat:2|intcomma }}</td>
+                                    <td class="px-6 py-4 text-primary font-medium">₱ {{ item.subtotal|floatformat:2|intcomma }}</td>
                                     <td class="px-6 py-4 text-secondary">
                                         {% if item.warranty_days %}
                                             {{ item.warranty_days }} day{{ item.warranty_days|pluralize }}
@@ -329,7 +331,7 @@
                         <tbody class="divide-y divide-gray-200">
                             {% for payment in repair.payments.all %}
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 text-green-600 font-medium">₱ {{ payment.amount|floatformat:2 }}</td>
+                                    <td class="px-6 py-4 text-green-600 font-medium">₱ {{ payment.amount|floatformat:2|intcomma }}</td>
                                     <td class="px-6 py-4 text-primary">{{ payment.get_payment_type_display }}</td>
                                     <td class="px-6 py-4 text-secondary">{{ payment.get_mode_of_payment_display }}</td>
                                     <td class="px-6 py-4 text-secondary font-mono">{{ payment.reference_number|default:"—" }}</td>
