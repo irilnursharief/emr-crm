@@ -1,16 +1,21 @@
-<aside class="w-64 shrink-0 bg-primary text-white flex flex-col transition-all duration-300">
+<aside class="w-64 h-full shrink-0 bg-primary text-white flex flex-col transition-all duration-300">
 
     <!-- Logo -->
-    <div class="h-16 flex items-center px-4 border-b border-white/10">
+    <div class="h-16 flex items-center justify-between px-4 border-b border-white/10">
         <a href="{% url 'dashboard' %}" class="flex items-center space-x-3">
             <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 6v6l4 2"></path>
-                </svg>
+                <span class="text-white font-bold text-sm">L</span>
             </div>
             <span class="font-bold text-lg">EMR CRM</span>
         </a>
+
+        <!-- Mobile Close Button -->
+        <button id="sidebar-close-btn"
+                class="lg:hidden p-2 rounded-lg hover:bg-white/10 transition">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
     </div>
 
     <!-- Navigation -->
@@ -18,7 +23,6 @@
 
         {% with base_class="flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200" %}
 
-        <!-- Dashboard -->
         <a href="{% url 'dashboard' %}"
            class="{{ base_class }}
            {% if current_url_name == 'dashboard' %}
@@ -29,7 +33,6 @@
             Dashboard
         </a>
 
-        <!-- Customers -->
         <a href="{% url 'customers:list' %}"
            class="{{ base_class }}
            {% if current_app == 'customers' %}
@@ -40,7 +43,6 @@
             Customers
         </a>
 
-        <!-- Devices -->
         <a href="{% url 'devices:list' %}"
            class="{{ base_class }}
            {% if current_app == 'devices' %}
@@ -51,7 +53,6 @@
             Devices
         </a>
 
-        <!-- Repairs -->
         <a href="{% url 'repairs:list' %}"
            class="{{ base_class }}
            {% if current_app == 'repairs' %}
