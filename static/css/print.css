@@ -1,46 +1,61 @@
-@media print {
+/* ================================ */
+/*     WATERMARK (Screen + Print)   */
+/* ================================ */
+/* Ensure content sits above watermark */
+.print-container {
+    position: relative;
+    z-index: 1;
+}
 
-    /* Remove browser-generated headers and footers */
+.no-print {
+    position: relative;
+    z-index: 2;
+}
+
+/* ================================ */
+/*         PRINT MEDIA STYLES       */
+/* ================================ */
+
+@media print {
     @page {
         margin: 1.5cm;
         size: A4;
     }
 
-    /* Hide all navigation and action elements */
     .no-print {
         display: none !important;
     }
 
-    /* Reset body for clean print */
     body {
-        background: white !important;
         color: black !important;
         font-size: 11pt;
         font-family: 'Arial', sans-serif;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
-    /* Ensure full width */
     .print-container {
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
+        position: relative;
+        z-index: 1;
     }
 
-    /* Remove card styling for print */
     .print-card {
         box-shadow: none !important;
         border: none !important;
         border-radius: 0 !important;
         padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
-    /* Page breaks */
     .page-break {
         page-break-before: always;
     }
 
-    /* Avoid breaking inside elements */
     table,
     tr,
     td,
@@ -48,12 +63,6 @@
         page-break-inside: avoid;
     }
 
-    /* Remove background colors from body */
-    .bg-gray-100 {
-        background: white !important;
-    }
-
-    /* Remove rounded corners and shadows */
     .rounded-xl,
     .rounded-lg {
         border-radius: 0 !important;
