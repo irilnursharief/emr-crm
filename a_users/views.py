@@ -1,6 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.db.models import Count, Sum, Q
+from django.db.models import Q, Value
+from django.db.models.functions import Concat
 from b_customers.models import Customer
 from c_devices.models import Device
 from d_repairs.models import Repair
@@ -53,3 +55,86 @@ def dashboard(request):
     }
 
     return render(request, "dashboard.html", context)
+
+
+@login_required
+def global_search(request):
+    query = request.GET.get("q", "").strip()
+
+    customers = []
+    devices = []
+    repairs = []
+    total_results = 0
+
+    if query:
+        # --- Search Customers ---
+        customers = (
+            Customer.objects.annotate(
+                full_name_search=Concat("first_name", Value(" "), "last_name")
+            )
+            .filter(
+                Q(first_name__icontains=query)
+                | Q(last_name__icontains=query)
+                | Q(full_name_search__icontains=query)
+                | Q(contact_number__icontains=query)
+                | Q(email__icontains=query)
+            )
+            .order_by("-created_at")[:10]
+        )
+
+        # --- Search Devices ---
+        devices = (
+            Device.objects.select_related("customer")
+            .annotate(
+                customer_full_name=Concat(
+                    "customer__first_name", Value(" "), "customer__last_name"
+                )
+            )
+            .filter(
+                Q(brand__icontains=query)
+                | Q(model__icontains=query)
+                | Q(serial_number__icontains=query)
+                | Q(customer_full_name__icontains=query)
+            )
+            .order_by("-created_at")[:10]
+        )
+
+        # --- Search Repairs ---
+        repairs = (
+            Repair.objects.select_related("device", "device__customer", "assigned_to")
+            .annotate(
+                customer_full_name=Concat(
+                    "device__customer__first_name",
+                    Value(" "),
+                    "device__customer__last_name",
+                )
+            )
+            .filter(
+                Q(device__customer__first_name__icontains=query)
+                | Q(device__customer__last_name__icontains=query)
+                | Q(customer_full_name__icontains=query)
+                | Q(device__brand__icontains=query)
+                | Q(device__model__icontains=query)
+                | Q(device__serial_number__icontains=query)
+                | Q(issue_category__icontains=query)
+            )
+            .order_by("-created_at")[:10]
+        )
+
+        total_results = len(customers) + len(devices) + len(repairs)
+
+    return render(
+        request,
+        "search_results.html",
+        {
+            "query": query,
+            "customers": customers,
+            "devices": devices,
+            "repairs": repairs,
+            "total_results": total_results,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Search Results", "url": None},
+            ],
+        },
+    )

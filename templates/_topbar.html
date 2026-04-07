@@ -1,18 +1,60 @@
 <header class="h-16 flex items-center justify-between px-6 bg-white border-b border-gray-200 shrink-0">
 
-    <div class="text-sm font-medium text-primary">
-        Welcome back 👋
+    <!-- Left side: empty or future breadcrumb area -->
+    <div></div>
+
+    <!-- Center: Global Search -->
+    <div class="flex-1 flex justify-center px-8 max-w-2xl mx-auto">
+        <form method="GET" action="{% url 'global_search' %}" class="relative w-full">
+            <!-- Search Icon -->
+            <span class="absolute inset-y-0 left-0 flex items-center pl-4">
+                <svg class="w-4 h-4 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </span>
+
+            <!-- Input -->
+            <input type="search"
+                   name="q"
+                   id="global-search"
+                   value="{{ request.GET.q|default:'' }}"
+                   placeholder="Search customers, devices, repairs..."
+                   autocomplete="off"
+                   class="w-full pl-11 pr-16 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white transition-all duration-200 shadow-sm">
+
+            <!-- Keyboard Shortcut Hint -->
+            <span class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                <kbd class="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-xs font-medium text-secondary bg-gray-200 border border-gray-300 rounded">
+                    Ctrl K
+                </kbd>
+            </span>
+        </form>
     </div>
 
-    <div class="flex items-center space-x-4">
-
-        <input type="search"
-               placeholder="Search customers, devices, repairs......"
-               class="w-64 px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm text-primary focus:outline-none focus:ring-2 focus:ring-tertiary">
-
-        <button class="p-2 text-secondary hover:text-primary transition">
-            🔔
+    <!-- Right side: Notification Bell -->
+    <div class="flex items-center">
+        <button id="notification-btn"
+                class="relative p-2 text-secondary hover:text-primary transition rounded-full hover:bg-gray-100">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
         </button>
-
     </div>
+
 </header>
+
+<!-- Ctrl+K keyboard shortcut to focus search -->
+<script>
+document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('global-search');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
+    }
+});
+</script>
