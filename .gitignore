@@ -12,3 +12,6 @@ wheels/
 
 # Tools
 tools/
+
+# Collected static files
+staticfiles/
