@@ -183,3 +183,29 @@ def quotation_item_delete(request, pk):
     item.delete()
     messages.success(request, "Quotation item deleted successfully.")
     return redirect("quotations:detail", pk=quotation.pk)
+
+
+@login_required
+def quotation_print(request, pk):
+    quotation = get_object_or_404(
+        Quotation.objects.select_related(
+            "repair",
+            "repair__device",
+            "repair__device__customer",
+            "created_by",
+        ).prefetch_related("items"),
+        pk=pk,
+    )
+
+    return render(
+        request,
+        "quotations/quotation_print.html",
+        {
+            "quotation": quotation,
+            "repair": quotation.repair,
+            "items": quotation.items.all(),
+            "subtotal": quotation.subtotal,
+            "discount": quotation.discount_amount,
+            "total": quotation.total,
+        },
+    )

@@ -282,3 +282,55 @@ def repair_add_note(request, pk):
             return redirect(f"{reverse('repairs:detail', args=[repair.pk])}#journal")
 
     return redirect("repairs:detail", pk=repair.pk)
+
+
+@login_required
+def repair_job_order(request, pk):
+    repair = get_object_or_404(
+        Repair.objects.select_related(
+            "device",
+            "device__customer",
+            "assigned_to",
+            "created_by",
+        ),
+        pk=pk,
+    )
+
+    return render(
+        request,
+        "repairs/job_order.html",
+        {
+            "repair": repair,
+        },
+    )
+
+
+@login_required
+def repair_service_report(request, pk):
+    repair = get_object_or_404(
+        Repair.objects.select_related(
+            "device",
+            "device__customer",
+            "assigned_to",
+            "created_by",
+        ),
+        pk=pk,
+    )
+
+    # Try to get quotation and items
+    try:
+        quotation = repair.quotation
+        quotation_items = quotation.items.all()
+    except Repair.quotation.RelatedObjectDoesNotExist:
+        quotation = None
+        quotation_items = []
+
+    return render(
+        request,
+        "repairs/service_report.html",
+        {
+            "repair": repair,
+            "quotation": quotation,
+            "quotation_items": quotation_items,
+        },
+    )

@@ -64,6 +64,19 @@
             {% endif %}
         </div>
 
+        <!-- Print Quotation -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <a href="{% url 'quotations:print' quotation.pk %}"
+            target="_blank"
+            class="w-full inline-flex justify-center items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Print Quotation
+            </a>
+        </div>
+
         <!-- Back to Repair -->
         <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <a href="{% url 'repairs:detail' repair.pk %}" class="w-full inline-flex justify-center px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition shadow-sm">

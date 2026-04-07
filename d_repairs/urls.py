@@ -12,4 +12,9 @@ urlpatterns = [
     path(
         "<int:pk>/edit/technical/", views.repair_edit_technical, name="edit_technical"
     ),
+    # Document views
+    path("<int:pk>/job-order/", views.repair_job_order, name="job_order"),
+    path(
+        "<int:pk>/service-report/", views.repair_service_report, name="service_report"
+    ),
 ]

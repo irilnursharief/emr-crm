@@ -9,4 +9,6 @@ urlpatterns = [
     path("<int:quotation_id>/items/add/", views.quotation_item_add, name="item_add"),
     path("items/<int:pk>/edit/", views.quotation_item_edit, name="item_edit"),
     path("items/<int:pk>/delete/", views.quotation_item_delete, name="item_delete"),
+    # Document view
+    path("<int:pk>/print/", views.quotation_print, name="print"),
 ]
