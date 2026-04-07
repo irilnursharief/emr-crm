@@ -118,3 +118,6 @@ AUTH_USER_MODEL = "a_users.User"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
+
+# Secret token for internal PDF generation
+PDF_SECRET_TOKEN = env("PDF_SECRET_TOKEN", default="change-me-in-production")

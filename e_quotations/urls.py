@@ -11,4 +11,6 @@ urlpatterns = [
     path("items/<int:pk>/delete/", views.quotation_item_delete, name="item_delete"),
     # Document view
     path("<int:pk>/print/", views.quotation_print, name="print"),
+    # PDF view
+    path("<int:pk>/pdf/", views.quotation_pdf, name="pdf"),
 ]

@@ -13,20 +13,35 @@
 
     <!-- Action Bar (hidden on print) -->
     <div class="no-print bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        
         <a href="{% url 'quotations:detail' quotation.pk %}"
            class="flex items-center gap-2 text-sm text-secondary hover:text-primary transition">
             ← Back to Quotation
         </a>
+        
         <div class="flex items-center gap-3">
             <p class="text-xs text-secondary hidden md:block">
                 💡 Tip: Uncheck "Headers and footers" in print settings for a clean output.
             </p>
             <span class="text-sm text-secondary">Quotation for Repair #{{ repair.id|stringformat:"04d" }}</span>
+
+            <!-- Download PDF -->
+            <a href="{% url 'quotations:pdf' quotation.pk %}"
+            class="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition shadow-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download PDF
+            </a>
+
+            <!-- Print -->
             <button onclick="window.print()"
                     class="cursor-pointer px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-opacity-90 transition shadow-sm">
                 Print
             </button>
         </div>
+
     </div>
 
     <!-- Document -->

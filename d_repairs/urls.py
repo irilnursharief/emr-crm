@@ -17,4 +17,11 @@ urlpatterns = [
     path(
         "<int:pk>/service-report/", views.repair_service_report, name="service_report"
     ),
+    # PDF views
+    path("<int:pk>/job-order/pdf/", views.repair_job_order_pdf, name="job_order_pdf"),
+    path(
+        "<int:pk>/service-report/pdf/",
+        views.repair_service_report_pdf,
+        name="service_report_pdf",
+    ),
 ]

@@ -20,8 +20,10 @@ urlpatterns = [
     path("", lambda request: redirect("login"), name="home"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("search/", views.global_search, name="global_search"),
-    # TEMPORARY - remove after testing
-    path("test-404/", test_404, name="test_404"),
-    path("test-500/", test_500, name="test_500"),
-    path("test-403/", test_403, name="test_403"),
 ]
+
+
+#    # TEMPORARY - For Testing Error Pages Only - remove after testing
+#     path("test-404/", test_404, name="test_404"),
+#     path("test-500/", test_500, name="test_500"),
+#     path("test-403/", test_403, name="test_403"),

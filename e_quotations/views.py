@@ -3,6 +3,9 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django.http import HttpResponse
+from django.urls import reverse
+from django.conf import settings
 from d_repairs.models import Repair
 from .models import Quotation, QuotationItem
 from .forms import QuotationForm, QuotationItemForm
@@ -185,8 +188,11 @@ def quotation_item_delete(request, pk):
     return redirect("quotations:detail", pk=quotation.pk)
 
 
-@login_required
 def quotation_print(request, pk):
+    pdf_token = request.GET.get("pdf_token", "")
+    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
+        return redirect(settings.LOGIN_URL)
+
     quotation = get_object_or_404(
         Quotation.objects.select_related(
             "repair",
@@ -209,3 +215,24 @@ def quotation_print(request, pk):
             "total": quotation.total,
         },
     )
+
+
+@login_required
+def quotation_pdf(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+
+    print_url = request.build_absolute_uri(reverse("quotations:print", args=[pk]))
+
+    try:
+        from d_repairs.utils import generate_pdf
+
+        pdf_bytes = generate_pdf(print_url)
+    except Exception as e:
+        messages.error(request, f"PDF generation failed: {str(e)}")
+        return redirect("quotations:print", pk=pk)
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="quotation-repair-{quotation.repair.id:04d}.pdf"'
+    )
+    return response

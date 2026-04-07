@@ -6,6 +6,9 @@ from django.db import models
 from django.core.paginator import Paginator
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
+from django.http import HttpResponse
+from django.urls import reverse
+from django.conf import settings
 from c_devices.models import Device
 from .models import Repair
 from .forms import (
@@ -284,8 +287,11 @@ def repair_add_note(request, pk):
     return redirect("repairs:detail", pk=repair.pk)
 
 
-@login_required
 def repair_job_order(request, pk):
+    pdf_token = request.GET.get("pdf_token", "")
+    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
+        return redirect(settings.LOGIN_URL)
+
     repair = get_object_or_404(
         Repair.objects.select_related(
             "device",
@@ -305,8 +311,11 @@ def repair_job_order(request, pk):
     )
 
 
-@login_required
 def repair_service_report(request, pk):
+    pdf_token = request.GET.get("pdf_token", "")
+    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
+        return redirect(settings.LOGIN_URL)
+
     repair = get_object_or_404(
         Repair.objects.select_related(
             "device",
@@ -317,7 +326,6 @@ def repair_service_report(request, pk):
         pk=pk,
     )
 
-    # Try to get quotation and items
     try:
         quotation = repair.quotation
         quotation_items = quotation.items.all()
@@ -334,3 +342,46 @@ def repair_service_report(request, pk):
             "quotation_items": quotation_items,
         },
     )
+
+
+@login_required
+def repair_job_order_pdf(request, pk):
+    repair = get_object_or_404(Repair, pk=pk)
+
+    # Build the absolute URL of the print page
+    print_url = request.build_absolute_uri(reverse("repairs:job_order", args=[pk]))
+
+    try:
+        from d_repairs.utils import generate_pdf
+
+        pdf_bytes = generate_pdf(print_url)
+    except Exception as e:
+        messages.error(request, f"PDF generation failed: {str(e)}")
+        return redirect("repairs:job_order", pk=pk)
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="job-order-{repair.id:04d}.pdf"'
+    )
+    return response
+
+
+@login_required
+def repair_service_report_pdf(request, pk):
+    repair = get_object_or_404(Repair, pk=pk)
+
+    print_url = request.build_absolute_uri(reverse("repairs:service_report", args=[pk]))
+
+    try:
+        from d_repairs.utils import generate_pdf
+
+        pdf_bytes = generate_pdf(print_url)
+    except Exception as e:
+        messages.error(request, f"PDF generation failed: {str(e)}")
+        return redirect("repairs:service_report", pk=pk)
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="service-report-{repair.id:04d}.pdf"'
+    )
+    return response
