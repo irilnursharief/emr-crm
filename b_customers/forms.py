@@ -1,6 +1,10 @@
 from django import forms
 from .models import Customer
 
+# Define the shared classes for light mode
+FIELD_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
+TEXTAREA_CLASS = FIELD_CLASS  # Use the same class for textareas
+
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -9,31 +13,31 @@ class CustomerForm(forms.ModelForm):
         widgets = {
             "first_name": forms.TextInput(
                 attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
+                    "class": FIELD_CLASS,
                     "placeholder": "First name",
                 }
             ),
             "last_name": forms.TextInput(
                 attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
+                    "class": FIELD_CLASS,
                     "placeholder": "Last name",
                 }
             ),
             "contact_number": forms.TextInput(
                 attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
+                    "class": FIELD_CLASS,
                     "placeholder": "Contact number",
                 }
             ),
             "email": forms.EmailInput(
                 attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
+                    "class": FIELD_CLASS,
                     "placeholder": "Email (optional)",
                 }
             ),
             "address": forms.Textarea(
                 attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
+                    "class": TEXTAREA_CLASS,
                     "placeholder": "Address (optional)",
                     "rows": 3,
                 }

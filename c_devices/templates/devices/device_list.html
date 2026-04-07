@@ -1,48 +1,158 @@
 {% extends "base_dashboard.html" %}
+{% load query_helpers %}
+{% load humanize %}
 
 {% block title %}Devices{% endblock %}
 {% block page_title %}Devices{% endblock %}
-{% block page_subtitle %}<p class="mt-1 text-sm text-gray-400">Manage registered customer devices.</p>{% endblock %}
+{% block page_subtitle %}<p class="mt-1 text-sm text-secondary">Manage registered customer devices.</p>{% endblock %}
 
 {% block content %}
-<div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-  <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
-    <div class="text-white font-semibold">All Devices</div>
-    <a href="{% url 'devices:create' %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition">
+
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
+
+<!-- Filter Bar -->
+<div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-6">
+    <form method="GET" action="" class="flex flex-wrap items-end gap-4">
+
+        <!-- Search -->
+        <div class="flex-1 min-w-48">
+            <label class="block text-xs font-medium text-secondary mb-1">Search</label>
+            <input type="text"
+                   name="q"
+                   value="{{ search_query }}"
+                   placeholder="Brand, model, serial, customer..."
+                   class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition shadow-sm">
+        </div>
+
+        <!-- Type Filter -->
+        <div class="min-w-44">
+            <label class="block text-xs font-medium text-secondary mb-1">Device Type</label>
+            <select name="type"
+                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition shadow-sm">
+                <option value="">All Types</option>
+                {% for value, label in type_choices %}
+                    <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-end gap-2">
+            <button type="submit"
+                    class="px-4 py-2 bg-primary hover:bg-opacity-90 text-white text-sm font-medium rounded-lg transition shadow-sm">
+                Apply
+            </button>
+            {% if active_filters %}
+            <a href="{% url 'devices:list' %}"
+               class="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition shadow-sm flex items-center gap-1">
+                Clear
+                <span class="inline-flex items-center justify-center w-4 h-4 bg-primary text-white text-xs rounded-full">
+                    {{ active_filters }}
+                </span>
+            </a>
+            {% endif %}
+        </div>
+
+    </form>
+</div>
+
+<!-- Results Summary -->
+{% if active_filters %}
+<p class="text-sm text-secondary mb-4">
+    Showing <span class="font-medium text-primary">{{ page_obj.paginator.count }}</span> result{{ page_obj.paginator.count|pluralize }}
+    {% if search_query %}for "<span class="font-medium text-primary">{{ search_query }}</span>"{% endif %}
+    {% if type_filter %}of type <span class="font-medium text-primary">{{ type_filter|title }}</span>{% endif %}
+</p>
+{% endif %}
+
+<!-- Device Table -->
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+  <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+    <div class="text-primary font-semibold">
+        All Devices
+        {% if active_filters %}
+            <span class="ml-2 text-xs font-normal text-secondary">(filtered)</span>
+        {% endif %}
+    </div>
+    <a href="{% url 'devices:create' %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition shadow-sm">
       Add Device
     </a>
   </div>
 
   <div class="overflow-x-auto">
     <table class="min-w-full text-sm">
-      <thead class="bg-gray-900/40 text-gray-400">
-        <tr>
-          <th class="text-left font-medium px-6 py-3">Device</th>
-          <th class="text-left font-medium px-6 py-3">Serial</th>
-          <th class="text-left font-medium px-6 py-3">Type</th>
-          <th class="text-left font-medium px-6 py-3">Customer</th>
-          <th class="text-left font-medium px-6 py-3">Created</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-700">
-        {% for d in devices %}
-          <tr class="hover:bg-gray-700/30 cursor-pointer"
-          onclick="window.location='{% url 'devices:detail' d.pk %}'">
-            <td class="px-6 py-4 text-white">{{ d.brand }} {{ d.model }}</td>
-            <td class="px-6 py-4 text-gray-300 font-mono">{{ d.serial_number }}</td>
-            <td class="px-6 py-4 text-gray-400">{{ d.get_type_display }}</td>
-            <td class="px-6 py-4 text-gray-300">{{ d.customer.full_name }}</td>
-            <td class="px-6 py-4 text-gray-400">{{ d.created_at|date:"M d, Y" }}</td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td class="px-6 py-10 text-center text-gray-400" colspan="5">
-              No devices yet.
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="brand" as header_class %}
+                    {% sort_url field="brand" as url %}
+                    {% sort_indicator field="brand" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Device <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="serial_number" as header_class %}
+                    {% sort_url field="serial_number" as url %}
+                    {% sort_indicator field="serial_number" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Serial <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="type" as header_class %}
+                    {% sort_url field="type" as url %}
+                    {% sort_indicator field="type" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Type <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+                <th class="text-left font-medium px-6 py-3 text-secondary">Customer</th>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="created_at" as header_class %}
+                    {% sort_url field="created_at" as url %}
+                    {% sort_indicator field="created_at" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Created <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for d in devices %}
+            <tr class="hover:bg-gray-50 cursor-pointer"
+                onclick="window.location='{% url 'devices:detail' d.pk %}'">
+                <td class="px-6 py-4 text-primary font-medium">{{ d.brand }} {{ d.model }}</td>
+                <td class="px-6 py-4 text-gray-700 font-mono">{{ d.serial_number }}</td>
+                <td class="px-6 py-4 text-secondary">{{ d.get_type_display }}</td>
+                <td class="px-6 py-4 text-gray-700">{{ d.customer.full_name }}</td>
+                <td class="px-6 py-4 text-secondary whitespace-nowrap">{{ d.created_at|date:"M d, Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td class="px-6 py-12 text-center" colspan="5">
+                    {% if active_filters %}
+                        <p class="text-secondary font-medium">No devices match your filters.</p>
+                        <a href="{% url 'devices:list' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
+                            Clear filters to see all devices
+                        </a>
+                    {% else %}
+                        <p class="text-secondary">No devices yet.</p>
+                        <a href="{% url 'devices:create' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
+                            Register your first device
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
   </div>
 </div>
+
+{% query_string as query_params %}
+{% include "components/pagination.html" with page_obj=page_obj query_params=query_params %}
+
 {% endblock %}

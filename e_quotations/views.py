@@ -10,18 +10,12 @@ from .forms import QuotationForm, QuotationItemForm
 
 @login_required
 def quotation_create(request, repair_id):
-    """
-    Creates a blank Draft Quotation for a Repair.
-    If one already exists, just redirects to it.
-    """
     repair = get_object_or_404(Repair, pk=repair_id)
 
-    # Check if a quotation already exists (OneToOne relationship)
     try:
         quotation = repair.quotation
         messages.info(request, "This repair already has a quotation.")
     except Repair.quotation.RelatedObjectDoesNotExist:
-        # Create a new draft quotation
         quotation = Quotation.objects.create(
             repair=repair,
             created_by=request.user,
@@ -37,20 +31,14 @@ def quotation_create(request, repair_id):
 
 @login_required
 def quotation_detail(request, pk):
-    """
-    Main quotation management interface.
-    Displays line items, financial summary, and status controls.
-    """
     quotation = get_object_or_404(
         Quotation.objects.select_related(
             "repair", "repair__device", "repair__device__customer"
         ).prefetch_related("items"),
         pk=pk,
     )
-
     repair = quotation.repair
 
-    # Handle status updates or discount changes via POST
     if request.method == "POST":
         form = QuotationForm(request.POST, instance=quotation)
         if form.is_valid():
@@ -60,24 +48,28 @@ def quotation_detail(request, pk):
     else:
         form = QuotationForm(instance=quotation)
 
-    # Calculate financials
-    subtotal = quotation.subtotal
-    discount = quotation.discount_amount
-    total = quotation.total
-
-    context = {
-        "quotation": quotation,
-        "repair": repair,
-        "form": form,
-        "items": quotation.items.all(),
-        "subtotal": subtotal,
-        "discount": discount,
-        "total": total,
-        "can_edit": quotation.status in [Quotation.Status.DRAFT, Quotation.Status.SENT],
-        "is_approved": quotation.status == Quotation.Status.APPROVED,
-    }
-
-    return render(request, "quotations/quotation_detail.html", context)
+    return render(
+        request,
+        "quotations/quotation_detail.html",
+        {
+            "quotation": quotation,
+            "repair": repair,
+            "form": form,
+            "items": quotation.items.all(),
+            "subtotal": quotation.subtotal,
+            "discount": quotation.discount_amount,
+            "total": quotation.total,
+            "can_edit": quotation.status
+            in [Quotation.Status.DRAFT, Quotation.Status.SENT],
+            "is_approved": quotation.status == Quotation.Status.APPROVED,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Repairs", "url": "/repairs/"},
+                {"label": f"Repair #{repair.id:04d}", "url": f"/repairs/{repair.pk}/"},
+                {"label": "Quotation", "url": None},
+            ],
+        },
+    )
 
 
 @login_required
@@ -112,6 +104,16 @@ def quotation_item_add(request, quotation_id):
             "quotation": quotation,
             "repair": quotation.repair,
             "is_edit": False,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Repairs", "url": "/repairs/"},
+                {
+                    "label": f"Repair #{quotation.repair.id:04d}",
+                    "url": f"/repairs/{quotation.repair.pk}/",
+                },
+                {"label": "Quotation", "url": f"/quotations/{quotation.pk}/"},
+                {"label": "Add Item", "url": None},
+            ],
         },
     )
 
@@ -151,6 +153,16 @@ def quotation_item_edit(request, pk):
             "repair": quotation.repair,
             "item": item,
             "is_edit": True,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Repairs", "url": "/repairs/"},
+                {
+                    "label": f"Repair #{quotation.repair.id:04d}",
+                    "url": f"/repairs/{quotation.repair.pk}/",
+                },
+                {"label": "Quotation", "url": f"/quotations/{quotation.pk}/"},
+                {"label": "Edit Item", "url": None},
+            ],
         },
     )
 

@@ -1,0 +1,5 @@
+<a href="?{% sort_url field=field %}"
+   class="flex items-center gap-1 {% sort_header_class field=field %} transition-colors duration-150 select-none">
+    {{ label }}
+    <span class="text-xs">{% sort_indicator field=field %}</span>
+</a>

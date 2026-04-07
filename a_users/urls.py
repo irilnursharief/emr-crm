@@ -5,4 +5,5 @@ from . import views
 urlpatterns = [
     path("", lambda request: redirect("login"), name="home"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("search/", views.global_search, name="global_search"),
 ]

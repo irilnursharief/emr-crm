@@ -3,76 +3,75 @@
 {% block title %}Add Payment — Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
 {% block page_title %}Add Payment{% endblock %}
 {% block page_subtitle %}
-    <p class="mt-1 text-sm text-gray-400">
+    <p class="mt-1 text-sm text-secondary">
         Repair #{{ repair.id|stringformat:"04d" }} — {{ repair.device.customer.full_name }}
     </p>
 {% endblock %}
 
 {% block content %}
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
 <div class="max-w-3xl">
-    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <form method="POST">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ next|default:'' }}">
 
             <div class="space-y-6">
-
                 <!-- Amount -->
                 <div>
-                    <label for="{{ form.amount.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                        Amount <span class="text-red-400">*</span>
+                    <label for="{{ form.amount.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Amount <span class="text-red-500">*</span>
                     </label>
                     {{ form.amount }}
                     {% if form.amount.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.amount.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.amount.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Payment Type -->
                 <div>
-                    <label for="{{ form.payment_type.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                        Payment Type <span class="text-red-400">*</span>
+                    <label for="{{ form.payment_type.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Payment Type <span class="text-red-500">*</span>
                     </label>
                     {{ form.payment_type }}
                     {% if form.payment_type.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.payment_type.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.payment_type.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Mode of Payment -->
                 <div>
-                    <label for="{{ form.mode_of_payment.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                        Mode of Payment <span class="text-red-400">*</span>
+                    <label for="{{ form.mode_of_payment.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Mode of Payment <span class="text-red-500">*</span>
                     </label>
                     {{ form.mode_of_payment }}
                     {% if form.mode_of_payment.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.mode_of_payment.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.mode_of_payment.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Reference Number -->
                 <div>
-                    <label for="{{ form.reference_number.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                        Reference Number <span class="text-gray-500 font-normal">(optional)</span>
+                    <label for="{{ form.reference_number.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Reference Number <span class="text-secondary font-normal">(optional)</span>
                     </label>
                     {{ form.reference_number }}
                     {% if form.reference_number.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.reference_number.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.reference_number.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Actions -->
                 <div class="mt-8 flex items-center gap-4">
                     <button type="submit"
-                            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200">
+                            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200 shadow-sm">
                         Record Payment
                     </button>
                     <a href="{% if next %}{{ next }}{% else %}{% url 'repairs:detail' repair.pk %}{% endif %}"
-                       class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition duration-200">
+                       class="px-6 py-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-xl transition duration-200 shadow-sm">
                         Cancel
                     </a>
                 </div>
-
             </div>
         </form>
     </div>

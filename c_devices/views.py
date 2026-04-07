@@ -1,6 +1,10 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q, Value
+from django.db.models.functions import Concat
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.paginator import Paginator
+from django.db import models
 from b_customers.models import Customer
 from .models import Device
 from .forms import DeviceForm
@@ -9,10 +13,80 @@ from d_repairs.models import Repair
 
 @login_required
 def device_list(request):
-    devices = Device.objects.select_related("customer", "created_by").order_by(
+    devices_qs = Device.objects.select_related("customer", "created_by").order_by(
         "-created_at"
     )
-    return render(request, "devices/device_list.html", {"devices": devices})
+
+    # --- Filters ---
+    search_query = request.GET.get("q", "")
+    type_filter = request.GET.get("type", "")
+
+    if search_query:
+
+        devices_qs = devices_qs.annotate(
+            customer_full_name=Concat(
+                "customer__first_name", Value(" "), "customer__last_name"
+            )
+        ).filter(
+            Q(brand__icontains=search_query)
+            | Q(model__icontains=search_query)
+            | Q(serial_number__icontains=search_query)
+            | Q(customer__first_name__icontains=search_query)
+            | Q(customer__last_name__icontains=search_query)
+            | Q(customer_full_name__icontains=search_query)
+        )
+
+    if type_filter:
+        devices_qs = devices_qs.filter(type=type_filter)
+
+    active_filters = sum(
+        [
+            bool(search_query),
+            bool(type_filter),
+        ]
+    )
+
+    # --- Sorting ---
+    sort_field = request.GET.get("sort", "created_at")
+    sort_dir = request.GET.get("dir", "desc")
+
+    valid_sort_fields = {
+        "brand": "brand",
+        "serial_number": "serial_number",
+        "type": "type",
+        "created_at": "created_at",
+    }
+
+    db_sort_field = valid_sort_fields.get(sort_field, "created_at")
+
+    if sort_dir == "asc":
+        devices_qs = devices_qs.order_by(db_sort_field)
+    else:
+        devices_qs = devices_qs.order_by(f"-{db_sort_field}")
+
+    # --- Pagination ---
+    paginator = Paginator(devices_qs, 15)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        "devices/device_list.html",
+        {
+            "devices": page_obj,
+            "page_obj": page_obj,
+            "search_query": search_query,
+            "type_filter": type_filter,
+            "type_choices": Device.DeviceType.choices,
+            "active_filters": active_filters,
+            "sort_field": sort_field,
+            "sort_dir": sort_dir,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Devices", "url": None},
+            ],
+        },
+    )
 
 
 @login_required
@@ -25,15 +99,12 @@ def device_create(request):
             device = form.save(commit=False)
             device.created_by = request.user
             device.save()
-
             messages.success(
                 request, f"Device {device.brand} {device.model} created successfully."
             )
             return redirect("customers:detail", pk=device.customer.pk)
     else:
         form = DeviceForm()
-
-        # Preselect customer if ?customer=<id> is in URL
         if customer_id:
             try:
                 customer = Customer.objects.get(pk=customer_id)
@@ -41,7 +112,18 @@ def device_create(request):
             except Customer.DoesNotExist:
                 pass
 
-    return render(request, "devices/device_form.html", {"form": form})
+    return render(
+        request,
+        "devices/device_form.html",
+        {
+            "form": form,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Devices", "url": "/devices/"},
+                {"label": "Add Device", "url": None},
+            ],
+        },
+    )
 
 
 @login_required
@@ -49,19 +131,22 @@ def device_detail(request, pk):
     device = get_object_or_404(
         Device.objects.select_related("customer", "created_by"), pk=pk
     )
-
     repairs = (
         Repair.objects.filter(device=device)
         .select_related("device", "device__customer", "assigned_to")
         .order_by("-created_at")
     )
-
     return render(
         request,
         "devices/device_detail.html",
         {
             "device": device,
             "repairs": repairs,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Devices", "url": "/devices/"},
+                {"label": f"{device.brand} {device.model}", "url": None},
+            ],
         },
     )
 
@@ -92,5 +177,14 @@ def device_edit(request, pk):
             "is_edit": True,
             "device": device,
             "next": next_url,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Devices", "url": "/devices/"},
+                {
+                    "label": f"{device.brand} {device.model}",
+                    "url": f"/devices/{device.pk}/",
+                },
+                {"label": "Edit", "url": None},
+            ],
         },
     )

@@ -1,46 +1,134 @@
 {% extends "base_dashboard.html" %}
+{% load query_helpers %}
+{% load humanize %}
 
 {% block title %}Customers{% endblock %}
 
 {% block page_title %}Customers{% endblock %}
-{% block page_subtitle %}<p class="mt-1 text-sm text-gray-400">Manage customer profiles.</p>{% endblock %}
+{% block page_subtitle %}<p class="mt-1 text-sm text-secondary">Manage customer profiles.</p>{% endblock %}
 
 {% block content %}
-<div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-  <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
-    <div class="text-white font-semibold">All Customers</div>
-    <a href="{% url 'customers:create' %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition">
+
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
+
+<!-- Filter Bar -->
+<div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-6">
+    <form method="GET" action="" class="flex flex-wrap items-end gap-4">
+
+        <!-- Search -->
+        <div class="flex-1 min-w-64">
+            <label class="block text-xs font-medium text-secondary mb-1">Search</label>
+            <input type="text"
+                   name="q"
+                   value="{{ search_query }}"
+                   placeholder="Name, contact number, email..."
+                   class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition shadow-sm">
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-end gap-2">
+            <button type="submit"
+                    class="px-4 py-2 bg-primary hover:bg-opacity-90 text-white text-sm font-medium rounded-lg transition shadow-sm">
+                Search
+            </button>
+            {% if active_filters %}
+            <a href="{% url 'customers:list' %}"
+               class="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition shadow-sm flex items-center gap-1">
+                Clear
+                <span class="inline-flex items-center justify-center w-4 h-4 bg-primary text-white text-xs rounded-full">
+                    {{ active_filters }}
+                </span>
+            </a>
+            {% endif %}
+        </div>
+
+    </form>
+</div>
+
+<!-- Results Summary -->
+{% if active_filters %}
+<p class="text-sm text-secondary mb-4">
+    Showing <span class="font-medium text-primary">{{ page_obj.paginator.count }}</span> result{{ page_obj.paginator.count|pluralize }}
+    {% if search_query %}for "<span class="font-medium text-primary">{{ search_query }}</span>"{% endif %}
+</p>
+{% endif %}
+
+<!-- Customer Table -->
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+  <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+    <div class="text-primary font-semibold">
+        All Customers
+        {% if active_filters %}
+            <span class="ml-2 text-xs font-normal text-secondary">(filtered)</span>
+        {% endif %}
+    </div>
+    <a href="{% url 'customers:create' %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition shadow-sm">
       Add Customer
     </a>
   </div>
 
   <div class="overflow-x-auto">
     <table class="min-w-full text-sm">
-      <thead class="bg-gray-900/40 text-gray-400">
-        <tr>
-          <th class="text-left font-medium px-6 py-3">Name</th>
-          <th class="text-left font-medium px-6 py-3">Contact</th>
-          <th class="text-left font-medium px-6 py-3">Email</th>
-          <th class="text-left font-medium px-6 py-3">Created</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-700">
-      {% for c in customers %}
-          <tr class="hover:bg-gray-700/30 cursor-pointer" onclick="window.location='{% url 'customers:detail' c.pk %}'">
-              <td class="px-6 py-4 text-white">{{ c.full_name }}</td>
-              <td class="px-6 py-4">{{ c.contact_number }}</td>
-              <td class="px-6 py-4 text-gray-400">{{ c.email|default:"—" }}</td>
-              <td class="px-6 py-4 text-gray-400">{{ c.created_at|date:"M d, Y" }}</td>
-          </tr>
-      {% empty %}
-          <tr>
-              <td class="px-6 py-10 text-center text-gray-400" colspan="4">
-                  No customers yet.
-              </td>
-          </tr>
-      {% endfor %}
-</tbody>
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="first_name" as header_class %}
+                    {% sort_url field="first_name" as url %}
+                    {% sort_indicator field="first_name" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Name <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="contact_number" as header_class %}
+                    {% sort_url field="contact_number" as url %}
+                    {% sort_indicator field="contact_number" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Contact <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+                <th class="text-left font-medium px-6 py-3 text-secondary">Email</th>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="created_at" as header_class %}
+                    {% sort_url field="created_at" as url %}
+                    {% sort_indicator field="created_at" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Created <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for c in customers %}
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{% url 'customers:detail' c.pk %}'">
+                    <td class="px-6 py-4 text-primary font-medium">{{ c.full_name }}</td>
+                    <td class="px-6 py-4 text-gray-700">{{ c.contact_number }}</td>
+                    <td class="px-6 py-4 text-secondary">{{ c.email|default:"—" }}</td>
+                    <td class="px-6 py-4 text-secondary whitespace-nowrap">{{ c.created_at|date:"M d, Y" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td class="px-6 py-12 text-center" colspan="4">
+                        {% if active_filters %}
+                            <p class="text-secondary font-medium">No customers match your search.</p>
+                            <a href="{% url 'customers:list' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
+                                Clear search to see all customers
+                            </a>
+                        {% else %}
+                            <p class="text-secondary">No customers yet.</p>
+                            <a href="{% url 'customers:create' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
+                                Add your first customer
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
     </table>
   </div>
 </div>
+
+{% query_string as query_params %}
+{% include "components/pagination.html" with page_obj=page_obj query_params=query_params %}
+
 {% endblock %}

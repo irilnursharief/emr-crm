@@ -24,12 +24,9 @@ def payment_create(request):
             payment.repair = repair
             payment.created_by = request.user
             payment.save()
-
             messages.success(
                 request, f"Payment of ₱{payment.amount:,.2f} recorded successfully."
             )
-
-            # Redirect back to repair detail, anchoring to the quotation/payments tab
             return redirect(f"{repair.get_absolute_url()}#quotation")
     else:
         form = PaymentForm()
@@ -41,5 +38,11 @@ def payment_create(request):
             "form": form,
             "repair": repair,
             "next": next_url,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Repairs", "url": "/repairs/"},
+                {"label": f"Repair #{repair.id:04d}", "url": f"/repairs/{repair.pk}/"},
+                {"label": "Add Payment", "url": None},
+            ],
         },
     )

@@ -1,9 +1,10 @@
 from django import forms
 from .models import Repair, RepairNote
 
-FIELD_CLASS = "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+# Use your existing correct light mode classes
+FIELD_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
 TEXTAREA_CLASS = FIELD_CLASS
-SELECT_CLASS = "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+SELECT_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
 
 
 class RepairCreateForm(forms.ModelForm):
@@ -18,41 +19,29 @@ class RepairCreateForm(forms.ModelForm):
             "status",
         ]
         widgets = {
-            "device": forms.Select(
-                attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
-                }
-            ),
+            "device": forms.Select(attrs={"class": SELECT_CLASS}),
             "issue_category": forms.TextInput(
                 attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
+                    "class": FIELD_CLASS,
                     "placeholder": "e.g. No Power, Screen Damage, Software Issue",
                 }
             ),
             "issue_description": forms.Textarea(
                 attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
+                    "class": TEXTAREA_CLASS,
                     "placeholder": "Describe the issue in detail",
                     "rows": 4,
                 }
             ),
             "vmi": forms.Textarea(
                 attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
+                    "class": TEXTAREA_CLASS,
                     "placeholder": "Visible condition at drop-off (scratches, dents, etc.)",
                     "rows": 3,
                 }
             ),
-            "assigned_to": forms.Select(
-                attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
-                }
-            ),
-            "status": forms.Select(
-                attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
-                }
-            ),
+            "assigned_to": forms.Select(attrs={"class": SELECT_CLASS}),
+            "status": forms.Select(attrs={"class": SELECT_CLASS}),
         }
 
 
@@ -126,7 +115,7 @@ class RepairNoteForm(forms.ModelForm):
         widgets = {
             "content": forms.Textarea(
                 attrs={
-                    "class": "w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200",
+                    "class": TEXTAREA_CLASS,  # Changed to use the constant
                     "placeholder": "Add a repair note...",
                     "rows": 4,
                 }
