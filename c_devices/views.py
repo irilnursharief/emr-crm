@@ -46,6 +46,24 @@ def device_list(request):
         ]
     )
 
+    # --- Sorting ---
+    sort_field = request.GET.get("sort", "created_at")
+    sort_dir = request.GET.get("dir", "desc")
+
+    valid_sort_fields = {
+        "brand": "brand",
+        "serial_number": "serial_number",
+        "type": "type",
+        "created_at": "created_at",
+    }
+
+    db_sort_field = valid_sort_fields.get(sort_field, "created_at")
+
+    if sort_dir == "asc":
+        devices_qs = devices_qs.order_by(db_sort_field)
+    else:
+        devices_qs = devices_qs.order_by(f"-{db_sort_field}")
+
     # --- Pagination ---
     paginator = Paginator(devices_qs, 15)
     page_number = request.GET.get("page")
@@ -61,6 +79,8 @@ def device_list(request):
             "type_filter": type_filter,
             "type_choices": Device.DeviceType.choices,
             "active_filters": active_filters,
+            "sort_field": sort_field,
+            "sort_dir": sort_dir,
             "breadcrumbs": [
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Devices", "url": None},

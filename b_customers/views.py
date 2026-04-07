@@ -36,6 +36,23 @@ def customer_list(request):
             bool(search_query),
         ]
     )
+    # --- Sorting ---
+    sort_field = request.GET.get("sort", "created_at")
+    sort_dir = request.GET.get("dir", "desc")
+
+    valid_sort_fields = {
+        "first_name": "first_name",
+        "contact_number": "contact_number",
+        "created_at": "created_at",
+    }
+
+    # Fallback to created_at if invalid field
+    db_sort_field = valid_sort_fields.get(sort_field, "created_at")
+
+    if sort_dir == "asc":
+        customers_qs = customers_qs.order_by(db_sort_field)
+    else:
+        customers_qs = customers_qs.order_by(f"-{db_sort_field}")
 
     # --- Pagination ---
     paginator = Paginator(customers_qs, 15)
@@ -50,6 +67,8 @@ def customer_list(request):
             "page_obj": page_obj,
             "search_query": search_query,
             "active_filters": active_filters,
+            "sort_field": sort_field,
+            "sort_dir": sort_dir,
             "breadcrumbs": [
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Customers", "url": None},

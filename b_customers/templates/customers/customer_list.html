@@ -69,40 +69,61 @@
 
   <div class="overflow-x-auto">
     <table class="min-w-full text-sm">
-      <thead class="bg-gray-50 text-secondary">
-        <tr>
-          <th class="text-left font-medium px-6 py-3">Name</th>
-          <th class="text-left font-medium px-6 py-3">Contact</th>
-          <th class="text-left font-medium px-6 py-3">Email</th>
-          <th class="text-left font-medium px-6 py-3">Created</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200">
-      {% for c in customers %}
-          <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{% url 'customers:detail' c.pk %}'">
-              <td class="px-6 py-4 text-primary font-medium">{{ c.full_name }}</td>
-              <td class="px-6 py-4 text-gray-700">{{ c.contact_number }}</td>
-              <td class="px-6 py-4 text-secondary">{{ c.email|default:"—" }}</td>
-              <td class="px-6 py-4 text-secondary whitespace-nowrap">{{ c.created_at|date:"M d, Y" }}</td>
-          </tr>
-      {% empty %}
-          <tr>
-              <td class="px-6 py-12 text-center" colspan="4">
-                  {% if active_filters %}
-                      <p class="text-secondary font-medium">No customers match your search.</p>
-                      <a href="{% url 'customers:list' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
-                          Clear search to see all customers
-                      </a>
-                  {% else %}
-                      <p class="text-secondary">No customers yet.</p>
-                      <a href="{% url 'customers:create' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
-                          Add your first customer
-                      </a>
-                  {% endif %}
-              </td>
-          </tr>
-      {% endfor %}
-      </tbody>
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="first_name" as header_class %}
+                    {% sort_url field="first_name" as url %}
+                    {% sort_indicator field="first_name" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Name <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="contact_number" as header_class %}
+                    {% sort_url field="contact_number" as url %}
+                    {% sort_indicator field="contact_number" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Contact <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+                <th class="text-left font-medium px-6 py-3 text-secondary">Email</th>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="created_at" as header_class %}
+                    {% sort_url field="created_at" as url %}
+                    {% sort_indicator field="created_at" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Created <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for c in customers %}
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{% url 'customers:detail' c.pk %}'">
+                    <td class="px-6 py-4 text-primary font-medium">{{ c.full_name }}</td>
+                    <td class="px-6 py-4 text-gray-700">{{ c.contact_number }}</td>
+                    <td class="px-6 py-4 text-secondary">{{ c.email|default:"—" }}</td>
+                    <td class="px-6 py-4 text-secondary whitespace-nowrap">{{ c.created_at|date:"M d, Y" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td class="px-6 py-12 text-center" colspan="4">
+                        {% if active_filters %}
+                            <p class="text-secondary font-medium">No customers match your search.</p>
+                            <a href="{% url 'customers:list' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
+                                Clear search to see all customers
+                            </a>
+                        {% else %}
+                            <p class="text-secondary">No customers yet.</p>
+                            <a href="{% url 'customers:create' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
+                                Add your first customer
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
     </table>
   </div>
 </div>

@@ -23,9 +23,9 @@ from django.core.paginator import Paginator
 def repair_list(request):
     repairs = Repair.objects.select_related(
         "device", "device__customer", "assigned_to", "created_by"
-    ).order_by("-created_at")
+    )
 
-    # --- Filters (keep your existing filter code) ---
+    # --- Filters ---
     status_filter = request.GET.get("status", "")
     assigned_filter = request.GET.get("assigned_to", "")
     search_query = request.GET.get("q", "")
@@ -37,7 +37,6 @@ def repair_list(request):
         repairs = repairs.filter(assigned_to__id=assigned_filter)
 
     if search_query:
-
         repairs = repairs.annotate(
             customer_full_name=Concat(
                 "device__customer__first_name",
@@ -53,13 +52,6 @@ def repair_list(request):
             | Q(issue_category__icontains=search_query)
         )
 
-    # --- Technicians for dropdown ---
-    from a_users.models import User
-
-    technicians = User.objects.filter(role__in=["technician", "admin"]).order_by(
-        "username"
-    )
-
     active_filters = sum(
         [
             bool(status_filter),
@@ -68,8 +60,32 @@ def repair_list(request):
         ]
     )
 
-    # --- Pagination (ADD THIS) ---
-    paginator = Paginator(repairs, 15)  # 15 per page
+    # --- Sorting ---
+    sort_field = request.GET.get("sort", "created_at")
+    sort_dir = request.GET.get("dir", "desc")
+
+    valid_sort_fields = {
+        "id": "id",
+        "status": "status",
+        "created_at": "created_at",
+    }
+
+    db_sort_field = valid_sort_fields.get(sort_field, "created_at")
+
+    if sort_dir == "asc":
+        repairs = repairs.order_by(db_sort_field)
+    else:
+        repairs = repairs.order_by(f"-{db_sort_field}")
+
+    # --- Technicians ---
+    from a_users.models import User
+
+    technicians = User.objects.filter(role__in=["technician", "admin"]).order_by(
+        "username"
+    )
+
+    # --- Pagination ---
+    paginator = Paginator(repairs, 15)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -85,6 +101,8 @@ def repair_list(request):
             "assigned_filter": assigned_filter,
             "search_query": search_query,
             "active_filters": active_filters,
+            "sort_field": sort_field,
+            "sort_dir": sort_dir,
             "breadcrumbs": [
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Repairs", "url": None},

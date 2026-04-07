@@ -99,15 +99,36 @@
 
     <div class="overflow-x-auto">
         <table class="min-w-full text-sm">
-            <thead class="bg-gray-50 text-secondary">
+            <thead class="bg-gray-50">
                 <tr>
-                    <th class="text-left font-medium px-6 py-3">Repair ID</th>
-                    <th class="text-left font-medium px-6 py-3">Customer</th>
-                    <th class="text-left font-medium px-6 py-3">Device</th>
-                    <th class="text-left font-medium px-6 py-3">Issue</th>
-                    <th class="text-left font-medium px-6 py-3">Status</th>
-                    <th class="text-left font-medium px-6 py-3">Assigned To</th>
-                    <th class="text-left font-medium px-6 py-3">Created</th>
+                    <th class="text-left font-medium px-6 py-3">
+                        {% sort_header_class field="id" as header_class %}
+                        {% sort_url field="id" as url %}
+                        {% sort_indicator field="id" as indicator %}
+                        <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                            Repair ID <span class="text-xs">{{ indicator }}</span>
+                        </a>
+                    </th>
+                    <th class="text-left font-medium px-6 py-3 text-secondary">Customer</th>
+                    <th class="text-left font-medium px-6 py-3 text-secondary">Device</th>
+                    <th class="text-left font-medium px-6 py-3 text-secondary">Issue</th>
+                    <th class="text-left font-medium px-6 py-3">
+                        {% sort_header_class field="status" as header_class %}
+                        {% sort_url field="status" as url %}
+                        {% sort_indicator field="status" as indicator %}
+                        <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                            Status <span class="text-xs">{{ indicator }}</span>
+                        </a>
+                    </th>
+                    <th class="text-left font-medium px-6 py-3 text-secondary">Assigned To</th>
+                    <th class="text-left font-medium px-6 py-3">
+                        {% sort_header_class field="created_at" as header_class %}
+                        {% sort_url field="created_at" as url %}
+                        {% sort_indicator field="created_at" as indicator %}
+                        <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                            Created <span class="text-xs">{{ indicator }}</span>
+                        </a>
+                    </th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">

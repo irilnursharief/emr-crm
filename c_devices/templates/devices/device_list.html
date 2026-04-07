@@ -83,44 +83,72 @@
 
   <div class="overflow-x-auto">
     <table class="min-w-full text-sm">
-      <thead class="bg-gray-50 text-secondary">
-        <tr>
-          <th class="text-left font-medium px-6 py-3">Device</th>
-          <th class="text-left font-medium px-6 py-3">Serial</th>
-          <th class="text-left font-medium px-6 py-3">Type</th>
-          <th class="text-left font-medium px-6 py-3">Customer</th>
-          <th class="text-left font-medium px-6 py-3">Created</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200">
-        {% for d in devices %}
-          <tr class="hover:bg-gray-50 cursor-pointer"
-              onclick="window.location='{% url 'devices:detail' d.pk %}'">
-            <td class="px-6 py-4 text-primary font-medium">{{ d.brand }} {{ d.model }}</td>
-            <td class="px-6 py-4 text-gray-700 font-mono">{{ d.serial_number }}</td>
-            <td class="px-6 py-4 text-secondary">{{ d.get_type_display }}</td>
-            <td class="px-6 py-4 text-gray-700">{{ d.customer.full_name }}</td>
-            <td class="px-6 py-4 text-secondary whitespace-nowrap">{{ d.created_at|date:"M d, Y" }}</td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td class="px-6 py-12 text-center" colspan="5">
-                {% if active_filters %}
-                    <p class="text-secondary font-medium">No devices match your filters.</p>
-                    <a href="{% url 'devices:list' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
-                        Clear filters to see all devices
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="brand" as header_class %}
+                    {% sort_url field="brand" as url %}
+                    {% sort_indicator field="brand" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Device <span class="text-xs">{{ indicator }}</span>
                     </a>
-                {% else %}
-                    <p class="text-secondary">No devices yet.</p>
-                    <a href="{% url 'devices:create' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
-                        Register your first device
+                </th>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="serial_number" as header_class %}
+                    {% sort_url field="serial_number" as url %}
+                    {% sort_indicator field="serial_number" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Serial <span class="text-xs">{{ indicator }}</span>
                     </a>
-                {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+                </th>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="type" as header_class %}
+                    {% sort_url field="type" as url %}
+                    {% sort_indicator field="type" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Type <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+                <th class="text-left font-medium px-6 py-3 text-secondary">Customer</th>
+                <th class="text-left font-medium px-6 py-3">
+                    {% sort_header_class field="created_at" as header_class %}
+                    {% sort_url field="created_at" as url %}
+                    {% sort_indicator field="created_at" as indicator %}
+                    <a href="?{{ url }}" class="flex items-center gap-1 {{ header_class }} transition-colors duration-150 select-none">
+                        Created <span class="text-xs">{{ indicator }}</span>
+                    </a>
+                </th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for d in devices %}
+            <tr class="hover:bg-gray-50 cursor-pointer"
+                onclick="window.location='{% url 'devices:detail' d.pk %}'">
+                <td class="px-6 py-4 text-primary font-medium">{{ d.brand }} {{ d.model }}</td>
+                <td class="px-6 py-4 text-gray-700 font-mono">{{ d.serial_number }}</td>
+                <td class="px-6 py-4 text-secondary">{{ d.get_type_display }}</td>
+                <td class="px-6 py-4 text-gray-700">{{ d.customer.full_name }}</td>
+                <td class="px-6 py-4 text-secondary whitespace-nowrap">{{ d.created_at|date:"M d, Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td class="px-6 py-12 text-center" colspan="5">
+                    {% if active_filters %}
+                        <p class="text-secondary font-medium">No devices match your filters.</p>
+                        <a href="{% url 'devices:list' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
+                            Clear filters to see all devices
+                        </a>
+                    {% else %}
+                        <p class="text-secondary">No devices yet.</p>
+                        <a href="{% url 'devices:create' %}" class="text-blue-600 hover:underline text-sm mt-1 inline-block">
+                            Register your first device
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
   </div>
 </div>
 
