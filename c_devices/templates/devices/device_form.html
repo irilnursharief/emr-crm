@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
 <div class="max-w-3xl">
     <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <form method="POST">

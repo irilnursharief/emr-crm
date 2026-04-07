@@ -9,7 +9,17 @@ from .forms import CustomerForm
 @login_required
 def customer_list(request):
     customers = Customer.objects.select_related("created_by").order_by("-created_at")
-    return render(request, "customers/customer_list.html", {"customers": customers})
+    return render(
+        request,
+        "customers/customer_list.html",
+        {
+            "customers": customers,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Customers", "url": None},
+            ],
+        },
+    )
 
 
 @login_required
@@ -26,7 +36,15 @@ def customer_detail(request, pk):
     return render(
         request,
         "customers/customer_detail.html",
-        {"customer": customer, "repairs": repairs},
+        {
+            "customer": customer,
+            "repairs": repairs,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Customers", "url": "/customers/"},
+                {"label": customer.full_name, "url": None},
+            ],
+        },
     )
 
 
@@ -38,22 +56,31 @@ def customer_create(request):
             customer = form.save(commit=False)
             customer.created_by = request.user
             customer.save()
-
             messages.success(
                 request, f"Customer {customer.full_name} created successfully."
             )
-
             return redirect("customers:detail", pk=customer.pk)
     else:
         form = CustomerForm()
 
-    return render(request, "customers/customer_form.html", {"form": form})
+    return render(
+        request,
+        "customers/customer_form.html",
+        {
+            "form": form,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Customers", "url": "/customers/"},
+                {"label": "Add Customer", "url": None},
+            ],
+        },
+    )
 
 
 @login_required
 def customer_edit(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
-    next_url = request.GET.get("next")  # ← Get next parameter
+    next_url = request.GET.get("next")
 
     if request.method == "POST":
         form = CustomerForm(request.POST, instance=customer)
@@ -62,7 +89,6 @@ def customer_edit(request, pk):
             messages.success(
                 request, f"Customer {customer.full_name} updated successfully."
             )
-            # ← Smart redirect
             if next_url:
                 return redirect(next_url)
             return redirect("customers:detail", pk=customer.pk)
@@ -77,5 +103,11 @@ def customer_edit(request, pk):
             "is_edit": True,
             "customer": customer,
             "next": next_url,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Customers", "url": "/customers/"},
+                {"label": customer.full_name, "url": f"/customers/{customer.pk}/"},
+                {"label": "Edit", "url": None},
+            ],
         },
     )

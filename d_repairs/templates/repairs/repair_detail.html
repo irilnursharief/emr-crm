@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block content %}
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
 
 <!-- Hidden Radio Inputs -->
 <input type="radio" name="tabs" id="tab-overview" class="hidden peer/overview" checked>

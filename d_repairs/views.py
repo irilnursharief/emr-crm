@@ -17,7 +17,17 @@ def repair_list(request):
     repairs = Repair.objects.select_related(
         "device", "device__customer", "assigned_to", "created_by"
     ).order_by("-created_at")
-    return render(request, "repairs/repair_list.html", {"repairs": repairs})
+    return render(
+        request,
+        "repairs/repair_list.html",
+        {
+            "repairs": repairs,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Repairs", "url": None},
+            ],
+        },
+    )
 
 
 @login_required
@@ -54,6 +64,11 @@ def repair_detail(request, pk):
             "quotation": quotation,
             "quotation_items": quotation_items,
             "form": form,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Repairs", "url": "/repairs/"},
+                {"label": f"Repair #{repair.id:04d}", "url": None},
+            ],
         },
     )
 
@@ -69,15 +84,12 @@ def repair_create(request):
             repair = form.save(commit=False)
             repair.created_by = request.user
             repair.save()
-
             messages.success(
                 request, f"Repair ticket #{repair.id:04d} created successfully."
             )
             return redirect("repairs:detail", pk=repair.pk)
     else:
         form = RepairCreateForm()
-
-        # Preselect device if ?device=<id> is in URL
         if device_id:
             try:
                 device = Device.objects.get(pk=device_id)
@@ -91,6 +103,11 @@ def repair_create(request):
         {
             "form": form,
             "next": next_url,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Repairs", "url": "/repairs/"},
+                {"label": "Create Repair", "url": None},
+            ],
         },
     )
 
@@ -120,6 +137,12 @@ def repair_edit_intake(request, pk):
             "form": form,
             "repair": repair,
             "next": next_url,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Repairs", "url": "/repairs/"},
+                {"label": f"Repair #{repair.id:04d}", "url": f"/repairs/{repair.pk}/"},
+                {"label": "Edit Intake", "url": None},
+            ],
         },
     )
 
@@ -153,6 +176,12 @@ def repair_edit_technical(request, pk):
             "form": form,
             "repair": repair,
             "next": next_url,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Repairs", "url": "/repairs/"},
+                {"label": f"Repair #{repair.id:04d}", "url": f"/repairs/{repair.pk}/"},
+                {"label": "Edit Technical", "url": None},
+            ],
         },
     )
 

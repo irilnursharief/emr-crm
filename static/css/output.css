@@ -821,6 +821,9 @@
   .text-blue-700 {
     color: var(--color-blue-700);
   }
+  .text-gray-300 {
+    color: var(--color-gray-300);
+  }
   .text-gray-400 {
     color: var(--color-gray-400);
   }
@@ -938,6 +941,10 @@
   .ease-in-out {
     --tw-ease: var(--ease-in-out);
     transition-timing-function: var(--ease-in-out);
+  }
+  .select-none {
+    -webkit-user-select: none;
+    user-select: none;
   }
   .peer-checked\/journal\:block {
     &:is(:where(.peer\/journal):checked ~ *) {

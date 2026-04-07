@@ -6,6 +6,7 @@
 {% block page_subtitle %}<p class="mt-1 text-sm text-secondary">Manage customer profiles.</p>{% endblock %}
 
 {% block content %}
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
 <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
   <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
     <div class="text-primary font-semibold">All Customers</div>

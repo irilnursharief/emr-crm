@@ -12,7 +12,17 @@ def device_list(request):
     devices = Device.objects.select_related("customer", "created_by").order_by(
         "-created_at"
     )
-    return render(request, "devices/device_list.html", {"devices": devices})
+    return render(
+        request,
+        "devices/device_list.html",
+        {
+            "devices": devices,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Devices", "url": None},
+            ],
+        },
+    )
 
 
 @login_required
@@ -25,15 +35,12 @@ def device_create(request):
             device = form.save(commit=False)
             device.created_by = request.user
             device.save()
-
             messages.success(
                 request, f"Device {device.brand} {device.model} created successfully."
             )
             return redirect("customers:detail", pk=device.customer.pk)
     else:
         form = DeviceForm()
-
-        # Preselect customer if ?customer=<id> is in URL
         if customer_id:
             try:
                 customer = Customer.objects.get(pk=customer_id)
@@ -41,7 +48,18 @@ def device_create(request):
             except Customer.DoesNotExist:
                 pass
 
-    return render(request, "devices/device_form.html", {"form": form})
+    return render(
+        request,
+        "devices/device_form.html",
+        {
+            "form": form,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Devices", "url": "/devices/"},
+                {"label": "Add Device", "url": None},
+            ],
+        },
+    )
 
 
 @login_required
@@ -49,19 +67,22 @@ def device_detail(request, pk):
     device = get_object_or_404(
         Device.objects.select_related("customer", "created_by"), pk=pk
     )
-
     repairs = (
         Repair.objects.filter(device=device)
         .select_related("device", "device__customer", "assigned_to")
         .order_by("-created_at")
     )
-
     return render(
         request,
         "devices/device_detail.html",
         {
             "device": device,
             "repairs": repairs,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Devices", "url": "/devices/"},
+                {"label": f"{device.brand} {device.model}", "url": None},
+            ],
         },
     )
 
@@ -92,5 +113,14 @@ def device_edit(request, pk):
             "is_edit": True,
             "device": device,
             "next": next_url,
+            "breadcrumbs": [
+                {"label": "Home", "url": "/dashboard/"},
+                {"label": "Devices", "url": "/devices/"},
+                {
+                    "label": f"{device.brand} {device.model}",
+                    "url": f"/devices/{device.pk}/",
+                },
+                {"label": "Edit", "url": None},
+            ],
         },
     )
