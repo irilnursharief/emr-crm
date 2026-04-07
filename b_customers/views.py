@@ -1,19 +1,55 @@
+from django.db.models import Q, Value
+from django.db.models.functions import Concat
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.core.paginator import Paginator
 from .models import Customer
 from d_repairs.models import Repair
 from .forms import CustomerForm
 
 
+from django.core.paginator import Paginator
+from django.db import models
+
+
 @login_required
 def customer_list(request):
-    customers = Customer.objects.select_related("created_by").order_by("-created_at")
+    customers_qs = Customer.objects.select_related("created_by").order_by("-created_at")
+
+    # --- Filters ---
+    search_query = request.GET.get("q", "")
+
+    if search_query:
+        customers_qs = customers_qs.annotate(
+            full_name_search=Concat("first_name", Value(" "), "last_name")
+        ).filter(
+            Q(first_name__icontains=search_query)
+            | Q(last_name__icontains=search_query)
+            | Q(full_name_search__icontains=search_query)
+            | Q(contact_number__icontains=search_query)
+            | Q(email__icontains=search_query)
+        )
+
+    active_filters = sum(
+        [
+            bool(search_query),
+        ]
+    )
+
+    # --- Pagination ---
+    paginator = Paginator(customers_qs, 15)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(
         request,
         "customers/customer_list.html",
         {
-            "customers": customers,
+            "customers": page_obj,
+            "page_obj": page_obj,
+            "search_query": search_query,
+            "active_filters": active_filters,
             "breadcrumbs": [
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Customers", "url": None},

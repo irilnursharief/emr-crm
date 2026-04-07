@@ -1,6 +1,10 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q, Value
+from django.db.models.functions import Concat
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.paginator import Paginator
+from django.db import models
 from b_customers.models import Customer
 from .models import Device
 from .forms import DeviceForm
@@ -9,14 +13,54 @@ from d_repairs.models import Repair
 
 @login_required
 def device_list(request):
-    devices = Device.objects.select_related("customer", "created_by").order_by(
+    devices_qs = Device.objects.select_related("customer", "created_by").order_by(
         "-created_at"
     )
+
+    # --- Filters ---
+    search_query = request.GET.get("q", "")
+    type_filter = request.GET.get("type", "")
+
+    if search_query:
+
+        devices_qs = devices_qs.annotate(
+            customer_full_name=Concat(
+                "customer__first_name", Value(" "), "customer__last_name"
+            )
+        ).filter(
+            Q(brand__icontains=search_query)
+            | Q(model__icontains=search_query)
+            | Q(serial_number__icontains=search_query)
+            | Q(customer__first_name__icontains=search_query)
+            | Q(customer__last_name__icontains=search_query)
+            | Q(customer_full_name__icontains=search_query)
+        )
+
+    if type_filter:
+        devices_qs = devices_qs.filter(type=type_filter)
+
+    active_filters = sum(
+        [
+            bool(search_query),
+            bool(type_filter),
+        ]
+    )
+
+    # --- Pagination ---
+    paginator = Paginator(devices_qs, 15)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(
         request,
         "devices/device_list.html",
         {
-            "devices": devices,
+            "devices": page_obj,
+            "page_obj": page_obj,
+            "search_query": search_query,
+            "type_filter": type_filter,
+            "type_choices": Device.DeviceType.choices,
+            "active_filters": active_filters,
             "breadcrumbs": [
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Devices", "url": None},

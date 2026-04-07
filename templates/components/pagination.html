@@ -1,0 +1,65 @@
+{% if page_obj.has_other_pages %}
+<nav class="flex items-center justify-between mt-6">
+
+    <!-- Results info -->
+    <p class="text-sm text-secondary">
+        Showing
+        <span class="font-medium text-primary">{{ page_obj.start_index }}</span>
+        to
+        <span class="font-medium text-primary">{{ page_obj.end_index }}</span>
+        of
+        <span class="font-medium text-primary">{{ page_obj.paginator.count }}</span>
+        results
+    </p>
+
+    <!-- Page buttons -->
+    <div class="flex items-center gap-1">
+
+        <!-- Previous -->
+        {% if page_obj.has_previous %}
+            <a href="?{{ query_params }}&page={{ page_obj.previous_page_number }}"
+               class="px-3 py-2 text-sm font-medium text-secondary hover:text-primary bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                ← Prev
+            </a>
+        {% else %}
+            <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
+                ← Prev
+            </span>
+        {% endif %}
+
+        <!-- Page numbers -->
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="px-3 py-2 text-sm font-medium text-white bg-primary rounded-lg shadow-sm">
+                    {{ num }}
+                </span>
+            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                <a href="?{{ query_params }}&page={{ num }}"
+                   class="px-3 py-2 text-sm font-medium text-secondary hover:text-primary bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                    {{ num }}
+                </a>
+            {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                <a href="?{{ query_params }}&page={{ num }}"
+                   class="px-3 py-2 text-sm font-medium text-secondary hover:text-primary bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                    {{ num }}
+                </a>
+            {% elif num == page_obj.number|add:"-3" or num == page_obj.number|add:"3" %}
+                <span class="px-2 py-2 text-sm text-secondary">…</span>
+            {% endif %}
+        {% endfor %}
+
+        <!-- Next -->
+        {% if page_obj.has_next %}
+            <a href="?{{ query_params }}&page={{ page_obj.next_page_number }}"
+               class="px-3 py-2 text-sm font-medium text-secondary hover:text-primary bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                Next →
+            </a>
+        {% else %}
+            <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
+                Next →
+            </span>
+        {% endif %}
+
+    </div>
+</nav>
+{% endif %}

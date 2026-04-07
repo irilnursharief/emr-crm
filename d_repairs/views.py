@@ -2,6 +2,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
+from django.db import models
+from django.core.paginator import Paginator
+from django.db.models import Q, Value
+from django.db.models.functions import Concat
 from c_devices.models import Device
 from .models import Repair
 from .forms import (
@@ -12,16 +16,75 @@ from .forms import (
 )
 
 
+from django.core.paginator import Paginator
+
+
 @login_required
 def repair_list(request):
     repairs = Repair.objects.select_related(
         "device", "device__customer", "assigned_to", "created_by"
     ).order_by("-created_at")
+
+    # --- Filters (keep your existing filter code) ---
+    status_filter = request.GET.get("status", "")
+    assigned_filter = request.GET.get("assigned_to", "")
+    search_query = request.GET.get("q", "")
+
+    if status_filter:
+        repairs = repairs.filter(status=status_filter)
+
+    if assigned_filter:
+        repairs = repairs.filter(assigned_to__id=assigned_filter)
+
+    if search_query:
+
+        repairs = repairs.annotate(
+            customer_full_name=Concat(
+                "device__customer__first_name",
+                Value(" "),
+                "device__customer__last_name",
+            )
+        ).filter(
+            Q(device__customer__first_name__icontains=search_query)
+            | Q(device__customer__last_name__icontains=search_query)
+            | Q(customer_full_name__icontains=search_query)
+            | Q(device__brand__icontains=search_query)
+            | Q(device__model__icontains=search_query)
+            | Q(issue_category__icontains=search_query)
+        )
+
+    # --- Technicians for dropdown ---
+    from a_users.models import User
+
+    technicians = User.objects.filter(role__in=["technician", "admin"]).order_by(
+        "username"
+    )
+
+    active_filters = sum(
+        [
+            bool(status_filter),
+            bool(assigned_filter),
+            bool(search_query),
+        ]
+    )
+
+    # --- Pagination (ADD THIS) ---
+    paginator = Paginator(repairs, 15)  # 15 per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(
         request,
         "repairs/repair_list.html",
         {
-            "repairs": repairs,
+            "repairs": page_obj,
+            "page_obj": page_obj,
+            "technicians": technicians,
+            "status_choices": Repair.Status.choices,
+            "status_filter": status_filter,
+            "assigned_filter": assigned_filter,
+            "search_query": search_query,
+            "active_filters": active_filters,
             "breadcrumbs": [
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Repairs", "url": None},
