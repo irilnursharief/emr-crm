@@ -9,6 +9,7 @@ from django.conf import settings
 from d_repairs.models import Repair
 from .models import Quotation, QuotationItem
 from .forms import QuotationForm, QuotationItemForm
+from d_repairs.signing import verify_signed_url
 
 
 @login_required
@@ -189,9 +190,15 @@ def quotation_item_delete(request, pk):
 
 
 def quotation_print(request, pk):
-    pdf_token = request.GET.get("pdf_token", "")
-    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
-        return redirect(settings.LOGIN_URL)
+    """
+    Render the Quotation document for printing or PDF generation.
+
+    Accessible to authenticated users or via signed URL.
+    """
+    # Check if user is authenticated OR has a valid signed URL
+    if not request.user.is_authenticated:
+        if not verify_signed_url(request):
+            return redirect(settings.LOGIN_URL)
 
     quotation = get_object_or_404(
         Quotation.objects.select_related(

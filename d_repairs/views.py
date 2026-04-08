@@ -17,6 +17,7 @@ from .forms import (
     RepairTechnicianForm,
     RepairNoteForm,
 )
+from d_repairs.signing import verify_signed_url
 
 
 from django.core.paginator import Paginator
@@ -288,9 +289,21 @@ def repair_add_note(request, pk):
 
 
 def repair_job_order(request, pk):
-    pdf_token = request.GET.get("pdf_token", "")
-    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
-        return redirect(settings.LOGIN_URL)
+    """
+    Render the Job Order document for printing or PDF generation.
+
+    This view is accessible:
+    1. To authenticated users (normal access)
+    2. To unauthenticated requests with a valid signed URL (for PDF generation)
+
+    The signed URL approach allows our headless browser (Playwright) to
+    access this page without needing a login session.
+    """
+    # Check if user is authenticated OR has a valid signed URL
+    if not request.user.is_authenticated:
+        if not verify_signed_url(request):
+            # Neither authenticated nor valid signature
+            return redirect(settings.LOGIN_URL)
 
     repair = get_object_or_404(
         Repair.objects.select_related(
@@ -312,9 +325,15 @@ def repair_job_order(request, pk):
 
 
 def repair_service_report(request, pk):
-    pdf_token = request.GET.get("pdf_token", "")
-    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
-        return redirect(settings.LOGIN_URL)
+    """
+    Render the Service Report document for printing or PDF generation.
+
+    Same authentication logic as repair_job_order.
+    """
+    # Check if user is authenticated OR has a valid signed URL
+    if not request.user.is_authenticated:
+        if not verify_signed_url(request):
+            return redirect(settings.LOGIN_URL)
 
     repair = get_object_or_404(
         Repair.objects.select_related(
