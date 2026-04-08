@@ -24,4 +24,15 @@ urlpatterns = [
         views.repair_service_report_pdf,
         name="service_report_pdf",
     ),
+    # Email views
+    path(
+        "<int:pk>/send-job-order/",
+        views.repair_send_job_order,
+        name="send_job_order",
+    ),
+    path(
+        "<int:pk>/send-service-report/",
+        views.repair_send_service_report,
+        name="send_service_report",
+    ),
 ]
