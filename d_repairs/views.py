@@ -18,9 +18,7 @@ from .forms import (
     RepairNoteForm,
 )
 from d_repairs.signing import verify_signed_url
-
-
-from django.core.paginator import Paginator
+from django.db import transaction
 
 
 @login_required
@@ -159,6 +157,7 @@ def repair_detail(request, pk):
 
 
 @login_required
+@transaction.atomic
 def repair_create(request):
     device_id = request.GET.get("device")
     next_url = request.GET.get("next") or request.POST.get("next")
@@ -168,6 +167,7 @@ def repair_create(request):
         if form.is_valid():
             repair = form.save(commit=False)
             repair.created_by = request.user
+            repair.updated_by = request.user
             repair.save()
             messages.success(
                 request, f"Repair ticket #{repair.id:04d} created successfully."
@@ -198,6 +198,7 @@ def repair_create(request):
 
 
 @login_required
+@transaction.atomic
 def repair_edit_intake(request, pk):
     repair = get_object_or_404(Repair, pk=pk)
     next_url = request.GET.get("next")
@@ -206,6 +207,7 @@ def repair_edit_intake(request, pk):
         form = RepairIntakeForm(request.POST, instance=repair)
         if form.is_valid():
             form.save()
+            Repair.objects.filter(pk=repair.pk).update(updated_by=request.user)
             messages.success(
                 request, f"Repair #{repair.id:04d} intake details updated."
             )
@@ -233,6 +235,7 @@ def repair_edit_intake(request, pk):
 
 
 @login_required
+@transaction.atomic
 def repair_edit_technical(request, pk):
     repair = get_object_or_404(Repair, pk=pk)
     next_url = request.GET.get("next")
@@ -245,6 +248,7 @@ def repair_edit_technical(request, pk):
         form = RepairTechnicianForm(request.POST, instance=repair)
         if form.is_valid():
             form.save()
+            Repair.objects.filter(pk=repair.pk).update(updated_by=request.user)
             messages.success(
                 request, f"Repair #{repair.id:04d} technical details updated."
             )
@@ -272,6 +276,7 @@ def repair_edit_technical(request, pk):
 
 
 @login_required
+@transaction.atomic
 def repair_add_note(request, pk):
     repair = get_object_or_404(Repair, pk=pk)
 
@@ -281,6 +286,7 @@ def repair_add_note(request, pk):
             note = form.save(commit=False)
             note.repair = repair
             note.created_by = request.user
+            note.updated_by = request.user
             note.save()
             messages.success(request, "Note added to repair journal.")
             return redirect(f"{reverse('repairs:detail', args=[repair.pk])}#journal")
