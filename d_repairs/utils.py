@@ -3,20 +3,16 @@ PDF Generation Utility using Playwright
 
 This module handles converting HTML pages to PDF documents using
 a headless Chromium browser (via Playwright).
-
-The process:
-1. Receive a URL to convert
-2. Add a signed URL parameter (so the headless browser can access protected pages)
-3. Launch headless Chromium
-4. Navigate to the page and wait for it to fully load
-5. Generate PDF with specified margins and format
-6. Close browser and return PDF bytes
 """
 
 import asyncio
+import time
 from django.conf import settings
 from playwright.async_api import async_playwright
 from d_repairs.signing import create_signed_url
+from z_core.logging_utils import get_logger
+
+logger = get_logger("emr.pdf")
 
 
 async def _generate_pdf_async(url: str, timeout_ms: int = 30000) -> bytes:
@@ -33,30 +29,25 @@ async def _generate_pdf_async(url: str, timeout_ms: int = 30000) -> bytes:
     Raises:
         Exception: If page fails to load or PDF generation fails
     """
-    # Create a signed URL so the headless browser can access the page
     signed_url = create_signed_url(url)
+
+    logger.debug(f"Starting PDF generation for URL: {url}")
 
     browser = None
 
     try:
-        # Start Playwright and launch Chromium
         async with async_playwright() as p:
-            # Launch browser
-            # headless=True means no visible window (runs in background)
             browser = await p.chromium.launch(headless=True)
 
             try:
-                # Create a new browser page (like a new tab)
                 page = await browser.new_page()
 
-                # Navigate to the URL
-                # wait_until="networkidle" means wait until no network requests for 500ms
-                # This ensures all CSS, images, and fonts are loaded
+                logger.debug(f"Navigating to page...")
                 await page.goto(
                     signed_url, wait_until="networkidle", timeout=timeout_ms
                 )
 
-                # Generate PDF
+                logger.debug(f"Generating PDF...")
                 pdf_bytes = await page.pdf(
                     format="A4",
                     margin={
@@ -65,20 +56,22 @@ async def _generate_pdf_async(url: str, timeout_ms: int = 30000) -> bytes:
                         "left": "1.5cm",
                         "right": "1.5cm",
                     },
-                    print_background=True,  # Include background colors/images
+                    print_background=True,
                 )
 
+                logger.debug(
+                    f"PDF generated successfully, size: {len(pdf_bytes)} bytes"
+                )
                 return pdf_bytes
 
             finally:
-                # IMPORTANT: Always close browser, even if an error occurred
-                # This prevents zombie browser processes from accumulating
                 if browser:
                     await browser.close()
+                    logger.debug("Browser closed")
 
     except Exception as e:
-        # Re-raise with more context for debugging
-        raise Exception(f"PDF generation failed for {url}: {str(e)}") from e
+        logger.error(f"PDF generation failed for {url}: {str(e)}", exc_info=True)
+        raise Exception(f"PDF generation failed: {str(e)}") from e
 
 
 def generate_pdf(url: str, timeout_ms: int = 30000) -> bytes:
@@ -93,9 +86,17 @@ def generate_pdf(url: str, timeout_ms: int = 30000) -> bytes:
 
     Returns:
         PDF file contents as bytes
-
-    Example:
-        pdf_bytes = generate_pdf("http://localhost:8000/repairs/1/job-order/")
-        response = HttpResponse(pdf_bytes, content_type="application/pdf")
     """
-    return asyncio.run(_generate_pdf_async(url, timeout_ms))
+    start_time = time.time()
+
+    try:
+        result = asyncio.run(_generate_pdf_async(url, timeout_ms))
+        duration_ms = (time.time() - start_time) * 1000
+        logger.info(f"PDF generated in {duration_ms:.0f}ms for {url}")
+        return result
+    except Exception as e:
+        duration_ms = (time.time() - start_time) * 1000
+        logger.error(
+            f"PDF generation failed after {duration_ms:.0f}ms for {url}: {str(e)}"
+        )
+        raise

@@ -10,6 +10,10 @@ from d_repairs.models import Repair
 from d_repairs.signing import verify_signed_url
 from .models import Quotation, QuotationItem
 from .forms import QuotationForm, QuotationItemForm
+from z_core.logging_utils import get_logger, log_user_action, log_pdf_event
+import time
+
+logger = get_logger("emr")
 
 
 @login_required
@@ -301,15 +305,38 @@ def quotation_send(request, pk):
         messages.error(
             request, f"{customer.full_name} does not have an email address on file."
         )
+        log_user_action(
+            request, "send_quotation_failed", {"quotation_id": pk, "reason": "no_email"}
+        )
         return redirect("quotations:detail", pk=pk)
 
     # Generate PDF
+    start_time = time.time()
     try:
         from d_repairs.utils import generate_pdf
 
         print_url = request.build_absolute_uri(reverse("quotations:print", args=[pk]))
         pdf_bytes = generate_pdf(print_url)
+
+        log_pdf_event(
+            request=request,
+            event="generate_for_email",
+            document_type="quotation",
+            document_id=quotation.id,
+            success=True,
+            duration_ms=(time.time() - start_time) * 1000,
+        )
+
     except Exception as e:
+        log_pdf_event(
+            request=request,
+            event="generate_for_email",
+            document_type="quotation",
+            document_id=quotation.id,
+            success=False,
+            duration_ms=(time.time() - start_time) * 1000,
+            error=str(e),
+        )
         messages.error(request, f"PDF generation failed: {str(e)}")
         return redirect("quotations:detail", pk=pk)
 
@@ -338,16 +365,18 @@ def quotation_send(request, pk):
         body=body,
         pdf_bytes=pdf_bytes,
         filename=filename,
+        request=request,
+        event_type="send_quotation",
     )
 
     if success:
         messages.success(request, f"Quotation sent to {customer.email} successfully.")
 
-        # Update quotation status to Sent if it was Draft
         if quotation.status == Quotation.Status.DRAFT:
             quotation.status = Quotation.Status.SENT
-            quotation.updated_by = request.user
-            quotation.save(update_fields=["status", "updated_by", "updated_at"])
+            Quotation.objects.filter(pk=quotation.pk).update(
+                status=Quotation.Status.SENT, updated_by=request.user
+            )
             messages.info(request, "Quotation status updated to Sent.")
     else:
         messages.error(

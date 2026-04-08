@@ -5,6 +5,7 @@ from django.db import transaction
 from d_repairs.models import Repair
 from .models import Payment
 from .forms import PaymentForm
+from z_core.logging_utils import log_user_action, log_payment_event
 
 
 @login_required
@@ -27,6 +28,16 @@ def payment_create(request):
             payment.created_by = request.user
             payment.updated_by = request.user
             payment.save()
+
+            log_payment_event(
+                request=request,
+                event="create",
+                repair_id=repair.id,
+                amount=float(payment.amount),
+                payment_type=payment.payment_type,
+                success=True,
+            )
+
             messages.success(
                 request, f"Payment of ₱{payment.amount:,.2f} recorded successfully."
             )
