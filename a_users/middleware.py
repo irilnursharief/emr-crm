@@ -17,6 +17,11 @@ class LoginRequiredMiddleware:
         ):
             return self.get_response(request)
 
+        # Allow internal PDF generation requests
+        pdf_token = request.GET.get("pdf_token", "")
+        if pdf_token == settings.PDF_SECRET_TOKEN:
+            return self.get_response(request)
+
         # If user not authenticated, redirect to login
         if not request.user.is_authenticated:
             return redirect(settings.LOGIN_URL)

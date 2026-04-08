@@ -6,6 +6,9 @@ from django.db import models
 from django.core.paginator import Paginator
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
+from django.http import HttpResponse
+from django.urls import reverse
+from django.conf import settings
 from c_devices.models import Device
 from .models import Repair
 from .forms import (
@@ -284,8 +287,11 @@ def repair_add_note(request, pk):
     return redirect("repairs:detail", pk=repair.pk)
 
 
-@login_required
 def repair_job_order(request, pk):
+    pdf_token = request.GET.get("pdf_token", "")
+    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
+        return redirect(settings.LOGIN_URL)
+
     repair = get_object_or_404(
         Repair.objects.select_related(
             "device",
@@ -305,8 +311,11 @@ def repair_job_order(request, pk):
     )
 
 
-@login_required
 def repair_service_report(request, pk):
+    pdf_token = request.GET.get("pdf_token", "")
+    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
+        return redirect(settings.LOGIN_URL)
+
     repair = get_object_or_404(
         Repair.objects.select_related(
             "device",
@@ -317,7 +326,6 @@ def repair_service_report(request, pk):
         pk=pk,
     )
 
-    # Try to get quotation and items
     try:
         quotation = repair.quotation
         quotation_items = quotation.items.all()
@@ -334,3 +342,193 @@ def repair_service_report(request, pk):
             "quotation_items": quotation_items,
         },
     )
+
+
+@login_required
+def repair_job_order_pdf(request, pk):
+    repair = get_object_or_404(Repair, pk=pk)
+
+    # Build the absolute URL of the print page
+    print_url = request.build_absolute_uri(reverse("repairs:job_order", args=[pk]))
+
+    try:
+        from d_repairs.utils import generate_pdf
+
+        pdf_bytes = generate_pdf(print_url)
+    except Exception as e:
+        messages.error(request, f"PDF generation failed: {str(e)}")
+        return redirect("repairs:job_order", pk=pk)
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="job-order-{repair.id:04d}.pdf"'
+    )
+    return response
+
+
+@login_required
+def repair_service_report_pdf(request, pk):
+    repair = get_object_or_404(Repair, pk=pk)
+
+    print_url = request.build_absolute_uri(reverse("repairs:service_report", args=[pk]))
+
+    try:
+        from d_repairs.utils import generate_pdf
+
+        pdf_bytes = generate_pdf(print_url)
+    except Exception as e:
+        messages.error(request, f"PDF generation failed: {str(e)}")
+        return redirect("repairs:service_report", pk=pk)
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="service-report-{repair.id:04d}.pdf"'
+    )
+    return response
+
+
+@login_required
+def repair_send_job_order(request, pk):
+    if request.method != "POST":
+        return redirect("repairs:detail", pk=pk)
+
+    repair = get_object_or_404(
+        Repair.objects.select_related(
+            "device", "device__customer", "assigned_to", "created_by"
+        ),
+        pk=pk,
+    )
+
+    customer = repair.device.customer
+
+    # Check if customer has an email
+    if not customer.email:
+        messages.error(
+            request, f"{customer.full_name} does not have an email address on file."
+        )
+        return redirect("repairs:detail", pk=pk)
+
+    # Generate PDF
+    try:
+        from d_repairs.utils import generate_pdf
+
+        print_url = request.build_absolute_uri(reverse("repairs:job_order", args=[pk]))
+        pdf_bytes = generate_pdf(print_url)
+    except Exception as e:
+        messages.error(request, f"PDF generation failed: {str(e)}")
+        return redirect("repairs:detail", pk=pk)
+
+    # Send email
+    from d_repairs.email_utils import send_document_email
+
+    subject = f"Job Order #{repair.id:04d} — Elektro Master Repairs"
+    body = (
+        f"Dear {customer.full_name},\n\n"
+        f"Please find attached your Job Order for the following repair:\n\n"
+        f"Device: {repair.device.brand} {repair.device.model}\n"
+        f"Issue: {repair.issue_category}\n"
+        f"Date: {repair.created_at.strftime('%B %d, %Y')}\n\n"
+        f"Please review and keep this document for your records.\n\n"
+        f"If you have any questions, feel free to contact us.\n\n"
+        f"Thank you for trusting Elektro Master Repairs.\n"
+        f"Elektro Master Repairs Team"
+    )
+    filename = f"job-order-{repair.id:04d}.pdf"
+
+    success = send_document_email(
+        to_email=customer.email,
+        subject=subject,
+        body=body,
+        pdf_bytes=pdf_bytes,
+        filename=filename,
+    )
+
+    if success:
+        messages.success(
+            request,
+            f"Job Order #{repair.id:04d} sent to {customer.email} successfully.",
+        )
+    else:
+        messages.error(
+            request, "Failed to send email. Please check your email settings."
+        )
+
+    return redirect("repairs:detail", pk=pk)
+
+
+@login_required
+def repair_send_service_report(request, pk):
+    if request.method != "POST":
+        return redirect("repairs:detail", pk=pk)
+
+    repair = get_object_or_404(
+        Repair.objects.select_related(
+            "device", "device__customer", "assigned_to", "created_by"
+        ),
+        pk=pk,
+    )
+
+    customer = repair.device.customer
+
+    if not customer.email:
+        messages.error(
+            request, f"{customer.full_name} does not have an email address on file."
+        )
+        return redirect("repairs:detail", pk=pk)
+
+    if repair.status not in ["completed", "released"]:
+        messages.error(
+            request,
+            "Service Report can only be sent for completed or released repairs.",
+        )
+        return redirect("repairs:detail", pk=pk)
+
+    # Generate PDF
+    try:
+        from d_repairs.utils import generate_pdf
+
+        print_url = request.build_absolute_uri(
+            reverse("repairs:service_report", args=[pk])
+        )
+        pdf_bytes = generate_pdf(print_url)
+    except Exception as e:
+        messages.error(request, f"PDF generation failed: {str(e)}")
+        return redirect("repairs:detail", pk=pk)
+
+    # Send email
+    from d_repairs.email_utils import send_document_email
+
+    subject = f"Service Report #{repair.id:04d} — Elektro Master Repairs"
+    body = (
+        f"Dear {customer.full_name},\n\n"
+        f"Your device has been serviced. Please find attached the Service Report:\n\n"
+        f"Device: {repair.device.brand} {repair.device.model}\n"
+        f"Issue: {repair.issue_category}\n"
+        f"Status: {repair.get_status_display()}\n"
+        f"Date Completed: {repair.updated_at.strftime('%B %d, %Y')}\n\n"
+        f"The report includes details of all work performed, parts replaced, "
+        f"and warranty information per line item.\n\n"
+        f"Thank you for trusting Elektro Master Repairs.\n"
+        f"Elektro Master Repairs Team"
+    )
+    filename = f"service-report-{repair.id:04d}.pdf"
+
+    success = send_document_email(
+        to_email=customer.email,
+        subject=subject,
+        body=body,
+        pdf_bytes=pdf_bytes,
+        filename=filename,
+    )
+
+    if success:
+        messages.success(
+            request,
+            f"Service Report #{repair.id:04d} sent to {customer.email} successfully.",
+        )
+    else:
+        messages.error(
+            request, "Failed to send email. Please check your email settings."
+        )
+
+    return redirect("repairs:detail", pk=pk)

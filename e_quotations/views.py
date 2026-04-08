@@ -3,6 +3,9 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django.http import HttpResponse
+from django.urls import reverse
+from django.conf import settings
 from d_repairs.models import Repair
 from .models import Quotation, QuotationItem
 from .forms import QuotationForm, QuotationItemForm
@@ -185,8 +188,11 @@ def quotation_item_delete(request, pk):
     return redirect("quotations:detail", pk=quotation.pk)
 
 
-@login_required
 def quotation_print(request, pk):
+    pdf_token = request.GET.get("pdf_token", "")
+    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
+        return redirect(settings.LOGIN_URL)
+
     quotation = get_object_or_404(
         Quotation.objects.select_related(
             "repair",
@@ -209,3 +215,100 @@ def quotation_print(request, pk):
             "total": quotation.total,
         },
     )
+
+
+@login_required
+def quotation_pdf(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+
+    print_url = request.build_absolute_uri(reverse("quotations:print", args=[pk]))
+
+    try:
+        from d_repairs.utils import generate_pdf
+
+        pdf_bytes = generate_pdf(print_url)
+    except Exception as e:
+        messages.error(request, f"PDF generation failed: {str(e)}")
+        return redirect("quotations:print", pk=pk)
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="quotation-repair-{quotation.repair.id:04d}.pdf"'
+    )
+    return response
+
+
+@login_required
+def quotation_send(request, pk):
+    if request.method != "POST":
+        return redirect("quotations:detail", pk=pk)
+
+    quotation = get_object_or_404(
+        Quotation.objects.select_related(
+            "repair",
+            "repair__device",
+            "repair__device__customer",
+        ),
+        pk=pk,
+    )
+
+    repair = quotation.repair
+    customer = repair.device.customer
+
+    if not customer.email:
+        messages.error(
+            request, f"{customer.full_name} does not have an email address on file."
+        )
+        return redirect("quotations:detail", pk=pk)
+
+    # Generate PDF
+    try:
+        from d_repairs.utils import generate_pdf
+
+        print_url = request.build_absolute_uri(reverse("quotations:print", args=[pk]))
+        pdf_bytes = generate_pdf(print_url)
+    except Exception as e:
+        messages.error(request, f"PDF generation failed: {str(e)}")
+        return redirect("quotations:detail", pk=pk)
+
+    # Send email
+    from d_repairs.email_utils import send_document_email
+
+    subject = f"Quotation for Repair #{repair.id:04d} — Elektro Master Repairs"
+    body = (
+        f"Dear {customer.full_name},\n\n"
+        f"Please find attached the quotation for your device repair:\n\n"
+        f"Device: {repair.device.brand} {repair.device.model}\n"
+        f"Issue: {repair.issue_category}\n"
+        f"Quotation Total: ₱{quotation.total:,.2f}\n"
+        f"Date: {quotation.created_at.strftime('%B %d, %Y')}\n\n"
+        f"Please review the attached quotation. "
+        f"If you approve, kindly contact us to proceed with the repair.\n\n"
+        f"This quotation is valid for 7 days from the date of issue.\n\n"
+        f"Thank you for trusting Elektro Master Repairs.\n"
+        f"Elektro Master Repairs Team"
+    )
+    filename = f"quotation-repair-{repair.id:04d}.pdf"
+
+    success = send_document_email(
+        to_email=customer.email,
+        subject=subject,
+        body=body,
+        pdf_bytes=pdf_bytes,
+        filename=filename,
+    )
+
+    if success:
+        messages.success(request, f"Quotation sent to {customer.email} successfully.")
+
+        # Update quotation status to Sent if it was Draft
+        if quotation.status == Quotation.Status.DRAFT:
+            quotation.status = Quotation.Status.SENT
+            quotation.save()
+            messages.info(request, "Quotation status updated to Sent.")
+    else:
+        messages.error(
+            request, "Failed to send email. Please check your email settings."
+        )
+
+    return redirect("quotations:detail", pk=pk)
