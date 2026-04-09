@@ -110,6 +110,7 @@ def customer_create(request):
         if form.is_valid():
             customer = form.save(commit=False)
             customer.created_by = request.user
+            customer.updated_by = request.user
             customer.save()
             messages.success(
                 request, f"Customer {customer.full_name} created successfully."
@@ -141,6 +142,7 @@ def customer_edit(request, pk):
         form = CustomerForm(request.POST, instance=customer)
         if form.is_valid():
             form.save()
+            Customer.objects.filter(pk=customer.pk).update(updated_by=request.user)
             messages.success(
                 request, f"Customer {customer.full_name} updated successfully."
             )

@@ -1,9 +1,15 @@
 from django.db import models
-from b_customers.models import Customer, TimestampedModel
-from django.conf import settings
+from z_core.models import AuditModel
+from b_customers.models import Customer
 
 
-class Device(TimestampedModel):
+class Device(AuditModel):
+    """
+    Device model representing customer devices brought in for repair.
+
+    Each device belongs to one customer and can have multiple repairs.
+    """
+
     class DeviceType(models.TextChoices):
         LAPTOP = "laptop", "Laptop"
         PHONE = "phone", "Phone"
@@ -23,16 +29,14 @@ class Device(TimestampedModel):
     peripherals = models.CharField(
         max_length=255, blank=True, null=True, help_text="e.g. Charger, Case, Cable"
     )
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name="devices_created",
-        null=True,
-        blank=True,
-    )
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["type"]),
+            models.Index(fields=["brand"]),
+        ]
 
     def __str__(self):
         return f"{self.brand} {self.model} ({self.serial_number})"

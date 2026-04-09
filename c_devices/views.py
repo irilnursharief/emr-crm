@@ -98,6 +98,7 @@ def device_create(request):
         if form.is_valid():
             device = form.save(commit=False)
             device.created_by = request.user
+            device.updated_by = request.user
             device.save()
             messages.success(
                 request, f"Device {device.brand} {device.model} created successfully."
@@ -160,6 +161,7 @@ def device_edit(request, pk):
         form = DeviceForm(request.POST, instance=device)
         if form.is_valid():
             form.save()
+            Device.objects.filter(pk=device.pk).update(updated_by=request.user)
             messages.success(
                 request, f"Device {device.brand} {device.model} updated successfully."
             )

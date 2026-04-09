@@ -1,5 +1,6 @@
 {% extends "base_dashboard.html" %}
 
+{% load status_tags %}
 {% load humanize %}
 
 {% block title %}Quotation — Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
@@ -22,15 +23,7 @@
             <h2 class="text-primary font-semibold mb-4">Quotation Status</h2>
             
             <div class="mb-4">
-                {% if quotation.status == 'draft' %}
-                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Draft</span>
-                {% elif quotation.status == 'sent' %}
-                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Sent to Customer</span>
-                {% elif quotation.status == 'approved' %}
-                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Approved</span>
-                {% elif quotation.status == 'rejected' %}
-                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Rejected</span>
-                {% endif %}
+                {% quotation_status_badge quotation.status quotation.get_status_display %}
             </div>
 
             {% if can_edit %}

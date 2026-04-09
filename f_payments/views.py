@@ -1,12 +1,15 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db import transaction
 from d_repairs.models import Repair
 from .models import Payment
 from .forms import PaymentForm
+from z_core.logging_utils import log_user_action, log_payment_event
 
 
 @login_required
+@transaction.atomic
 def payment_create(request):
     repair_id = request.GET.get("repair")
     next_url = request.GET.get("next") or request.POST.get("next")
@@ -23,7 +26,18 @@ def payment_create(request):
             payment = form.save(commit=False)
             payment.repair = repair
             payment.created_by = request.user
+            payment.updated_by = request.user
             payment.save()
+
+            log_payment_event(
+                request=request,
+                event="create",
+                repair_id=repair.id,
+                amount=float(payment.amount),
+                payment_type=payment.payment_type,
+                success=True,
+            )
+
             messages.success(
                 request, f"Payment of ₱{payment.amount:,.2f} recorded successfully."
             )

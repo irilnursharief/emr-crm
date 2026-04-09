@@ -1,12 +1,15 @@
+"""
+Device forms with centralized styling.
+"""
+
 from django import forms
+from z_core.forms import StyledModelForm, FIELD_CLASS, SELECT_CLASS, MONO_FIELD_CLASS
 from .models import Device
 
-# Define the shared classes for light mode
-FIELD_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
-SELECT_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
 
+class DeviceForm(StyledModelForm):
+    """Form for creating and editing devices."""
 
-class DeviceForm(forms.ModelForm):
     class Meta:
         model = Device
         fields = ["customer", "type", "brand", "model", "serial_number", "peripherals"]
@@ -27,7 +30,7 @@ class DeviceForm(forms.ModelForm):
             ),
             "serial_number": forms.TextInput(
                 attrs={
-                    "class": f"{FIELD_CLASS} font-mono",  # Added font-mono back in
+                    "class": MONO_FIELD_CLASS,
                     "placeholder": "Enter unique serial number",
                 }
             ),

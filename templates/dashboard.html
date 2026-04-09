@@ -1,6 +1,7 @@
 {% extends "base_dashboard.html" %}
 
 {% load humanize %}
+{% load status_tags %}
 
 {% block title %}Dashboard{% endblock %}
 
@@ -163,17 +164,7 @@
 
                                 <!-- Status -->
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    {% if r.status == 'pending' %}
-                                        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 whitespace-nowrap">{{ r.get_status_display }}</span>
-                                    {% elif r.status == 'in_progress' %}
-                                        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 whitespace-nowrap">{{ r.get_status_display }}</span>
-                                    {% elif r.status == 'awaiting_approval' %}
-                                        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 whitespace-nowrap">{{ r.get_status_display }}</span>
-                                    {% elif r.status == 'completed' %}
-                                        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 whitespace-nowrap">{{ r.get_status_display }}</span>
-                                    {% elif r.status == 'released' %}
-                                        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 whitespace-nowrap">{{ r.get_status_display }}</span>
-                                    {% endif %}
+                                    {% repair_status_badge r.status r.get_status_display %}
                                 </td>
 
                                 <!-- Date -->

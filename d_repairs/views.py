@@ -17,9 +17,18 @@ from .forms import (
     RepairTechnicianForm,
     RepairNoteForm,
 )
+from d_repairs.signing import verify_signed_url
+from django.db import transaction
+from z_core.logging_utils import (
+    get_logger,
+    log_user_action,
+    log_error,
+    log_pdf_event,
+    log_email_event,
+)
+import time
 
-
-from django.core.paginator import Paginator
+logger = get_logger("emr")
 
 
 @login_required
@@ -158,6 +167,7 @@ def repair_detail(request, pk):
 
 
 @login_required
+@transaction.atomic
 def repair_create(request):
     device_id = request.GET.get("device")
     next_url = request.GET.get("next") or request.POST.get("next")
@@ -167,7 +177,15 @@ def repair_create(request):
         if form.is_valid():
             repair = form.save(commit=False)
             repair.created_by = request.user
+            repair.updated_by = request.user
             repair.save()
+
+            log_user_action(
+                request,
+                "created_repair",
+                {"repair_id": repair.id, "device_id": repair.device_id},
+            )
+
             messages.success(
                 request, f"Repair ticket #{repair.id:04d} created successfully."
             )
@@ -197,6 +215,7 @@ def repair_create(request):
 
 
 @login_required
+@transaction.atomic
 def repair_edit_intake(request, pk):
     repair = get_object_or_404(Repair, pk=pk)
     next_url = request.GET.get("next")
@@ -205,6 +224,7 @@ def repair_edit_intake(request, pk):
         form = RepairIntakeForm(request.POST, instance=repair)
         if form.is_valid():
             form.save()
+            Repair.objects.filter(pk=repair.pk).update(updated_by=request.user)
             messages.success(
                 request, f"Repair #{repair.id:04d} intake details updated."
             )
@@ -232,6 +252,7 @@ def repair_edit_intake(request, pk):
 
 
 @login_required
+@transaction.atomic
 def repair_edit_technical(request, pk):
     repair = get_object_or_404(Repair, pk=pk)
     next_url = request.GET.get("next")
@@ -244,6 +265,7 @@ def repair_edit_technical(request, pk):
         form = RepairTechnicianForm(request.POST, instance=repair)
         if form.is_valid():
             form.save()
+            Repair.objects.filter(pk=repair.pk).update(updated_by=request.user)
             messages.success(
                 request, f"Repair #{repair.id:04d} technical details updated."
             )
@@ -271,6 +293,7 @@ def repair_edit_technical(request, pk):
 
 
 @login_required
+@transaction.atomic
 def repair_add_note(request, pk):
     repair = get_object_or_404(Repair, pk=pk)
 
@@ -280,6 +303,7 @@ def repair_add_note(request, pk):
             note = form.save(commit=False)
             note.repair = repair
             note.created_by = request.user
+            note.updated_by = request.user
             note.save()
             messages.success(request, "Note added to repair journal.")
             return redirect(f"{reverse('repairs:detail', args=[repair.pk])}#journal")
@@ -288,9 +312,21 @@ def repair_add_note(request, pk):
 
 
 def repair_job_order(request, pk):
-    pdf_token = request.GET.get("pdf_token", "")
-    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
-        return redirect(settings.LOGIN_URL)
+    """
+    Render the Job Order document for printing or PDF generation.
+
+    This view is accessible:
+    1. To authenticated users (normal access)
+    2. To unauthenticated requests with a valid signed URL (for PDF generation)
+
+    The signed URL approach allows our headless browser (Playwright) to
+    access this page without needing a login session.
+    """
+    # Check if user is authenticated OR has a valid signed URL
+    if not request.user.is_authenticated:
+        if not verify_signed_url(request):
+            # Neither authenticated nor valid signature
+            return redirect(settings.LOGIN_URL)
 
     repair = get_object_or_404(
         Repair.objects.select_related(
@@ -312,9 +348,15 @@ def repair_job_order(request, pk):
 
 
 def repair_service_report(request, pk):
-    pdf_token = request.GET.get("pdf_token", "")
-    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
-        return redirect(settings.LOGIN_URL)
+    """
+    Render the Service Report document for printing or PDF generation.
+
+    Same authentication logic as repair_job_order.
+    """
+    # Check if user is authenticated OR has a valid signed URL
+    if not request.user.is_authenticated:
+        if not verify_signed_url(request):
+            return redirect(settings.LOGIN_URL)
 
     repair = get_object_or_404(
         Repair.objects.select_related(
@@ -346,16 +388,38 @@ def repair_service_report(request, pk):
 
 @login_required
 def repair_job_order_pdf(request, pk):
+    """Generate and download Job Order as PDF."""
     repair = get_object_or_404(Repair, pk=pk)
+    start_time = time.time()
 
-    # Build the absolute URL of the print page
     print_url = request.build_absolute_uri(reverse("repairs:job_order", args=[pk]))
 
     try:
         from d_repairs.utils import generate_pdf
 
         pdf_bytes = generate_pdf(print_url)
+
+        duration_ms = (time.time() - start_time) * 1000
+        log_pdf_event(
+            request=request,
+            event="download",
+            document_type="job_order",
+            document_id=repair.id,
+            success=True,
+            duration_ms=duration_ms,
+        )
+
     except Exception as e:
+        duration_ms = (time.time() - start_time) * 1000
+        log_pdf_event(
+            request=request,
+            event="download",
+            document_type="job_order",
+            document_id=repair.id,
+            success=False,
+            duration_ms=duration_ms,
+            error=str(e),
+        )
         messages.error(request, f"PDF generation failed: {str(e)}")
         return redirect("repairs:job_order", pk=pk)
 
@@ -368,7 +432,9 @@ def repair_job_order_pdf(request, pk):
 
 @login_required
 def repair_service_report_pdf(request, pk):
+    """Generate and download Service Report as PDF."""
     repair = get_object_or_404(Repair, pk=pk)
+    start_time = time.time()
 
     print_url = request.build_absolute_uri(reverse("repairs:service_report", args=[pk]))
 
@@ -376,7 +442,28 @@ def repair_service_report_pdf(request, pk):
         from d_repairs.utils import generate_pdf
 
         pdf_bytes = generate_pdf(print_url)
+
+        duration_ms = (time.time() - start_time) * 1000
+        log_pdf_event(
+            request=request,
+            event="download",
+            document_type="service_report",
+            document_id=repair.id,
+            success=True,
+            duration_ms=duration_ms,
+        )
+
     except Exception as e:
+        duration_ms = (time.time() - start_time) * 1000
+        log_pdf_event(
+            request=request,
+            event="download",
+            document_type="service_report",
+            document_id=repair.id,
+            success=False,
+            duration_ms=duration_ms,
+            error=str(e),
+        )
         messages.error(request, f"PDF generation failed: {str(e)}")
         return redirect("repairs:service_report", pk=pk)
 
@@ -389,6 +476,7 @@ def repair_service_report_pdf(request, pk):
 
 @login_required
 def repair_send_job_order(request, pk):
+    """Send Job Order to customer via email."""
     if request.method != "POST":
         return redirect("repairs:detail", pk=pk)
 
@@ -401,20 +489,42 @@ def repair_send_job_order(request, pk):
 
     customer = repair.device.customer
 
-    # Check if customer has an email
     if not customer.email:
         messages.error(
             request, f"{customer.full_name} does not have an email address on file."
         )
+        log_user_action(
+            request, "send_job_order_failed", {"repair_id": pk, "reason": "no_email"}
+        )
         return redirect("repairs:detail", pk=pk)
 
     # Generate PDF
+    start_time = time.time()
     try:
         from d_repairs.utils import generate_pdf
 
         print_url = request.build_absolute_uri(reverse("repairs:job_order", args=[pk]))
         pdf_bytes = generate_pdf(print_url)
+
+        log_pdf_event(
+            request=request,
+            event="generate_for_email",
+            document_type="job_order",
+            document_id=repair.id,
+            success=True,
+            duration_ms=(time.time() - start_time) * 1000,
+        )
+
     except Exception as e:
+        log_pdf_event(
+            request=request,
+            event="generate_for_email",
+            document_type="job_order",
+            document_id=repair.id,
+            success=False,
+            duration_ms=(time.time() - start_time) * 1000,
+            error=str(e),
+        )
         messages.error(request, f"PDF generation failed: {str(e)}")
         return redirect("repairs:detail", pk=pk)
 
@@ -441,6 +551,8 @@ def repair_send_job_order(request, pk):
         body=body,
         pdf_bytes=pdf_bytes,
         filename=filename,
+        request=request,
+        event_type="send_job_order",
     )
 
     if success:
@@ -458,6 +570,7 @@ def repair_send_job_order(request, pk):
 
 @login_required
 def repair_send_service_report(request, pk):
+    """Send Service Report to customer via email."""
     if request.method != "POST":
         return redirect("repairs:detail", pk=pk)
 
@@ -474,6 +587,11 @@ def repair_send_service_report(request, pk):
         messages.error(
             request, f"{customer.full_name} does not have an email address on file."
         )
+        log_user_action(
+            request,
+            "send_service_report_failed",
+            {"repair_id": pk, "reason": "no_email"},
+        )
         return redirect("repairs:detail", pk=pk)
 
     if repair.status not in ["completed", "released"]:
@@ -481,9 +599,15 @@ def repair_send_service_report(request, pk):
             request,
             "Service Report can only be sent for completed or released repairs.",
         )
+        log_user_action(
+            request,
+            "send_service_report_failed",
+            {"repair_id": pk, "reason": "invalid_status", "status": repair.status},
+        )
         return redirect("repairs:detail", pk=pk)
 
     # Generate PDF
+    start_time = time.time()
     try:
         from d_repairs.utils import generate_pdf
 
@@ -491,7 +615,26 @@ def repair_send_service_report(request, pk):
             reverse("repairs:service_report", args=[pk])
         )
         pdf_bytes = generate_pdf(print_url)
+
+        log_pdf_event(
+            request=request,
+            event="generate_for_email",
+            document_type="service_report",
+            document_id=repair.id,
+            success=True,
+            duration_ms=(time.time() - start_time) * 1000,
+        )
+
     except Exception as e:
+        log_pdf_event(
+            request=request,
+            event="generate_for_email",
+            document_type="service_report",
+            document_id=repair.id,
+            success=False,
+            duration_ms=(time.time() - start_time) * 1000,
+            error=str(e),
+        )
         messages.error(request, f"PDF generation failed: {str(e)}")
         return redirect("repairs:detail", pk=pk)
 
@@ -519,6 +662,8 @@ def repair_send_service_report(request, pk):
         body=body,
         pdf_bytes=pdf_bytes,
         filename=filename,
+        request=request,
+        event_type="send_service_report",
     )
 
     if success:

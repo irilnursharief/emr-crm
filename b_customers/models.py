@@ -1,37 +1,28 @@
 from django.db import models
-from django.conf import settings
+from z_core.models import AuditModel
 
 
-class TimestampedModel(models.Model):
+class Customer(AuditModel):
     """
-    Abstract base model that provides created/updated timestamps.
-    Other apps will inherit from this later (devices, repairs, etc.)
+    Customer model representing clients who bring devices for repair.
+
+    Inherits from AuditModel which provides:
+    - created_at, updated_at (automatic timestamps)
+    - created_by, updated_by (user tracking)
     """
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        abstract = True
-
-
-class Customer(TimestampedModel):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     contact_number = models.CharField(max_length=20)
     email = models.EmailField(blank=True)
     address = models.TextField(blank=True)
 
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name="customers_created",
-        null=True,
-        blank=True,
-    )
-
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["last_name", "first_name"]),
+        ]
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

@@ -4,36 +4,51 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.http import HttpResponse
-from django.urls import reverse
 from django.conf import settings
+from django.db import transaction
 from d_repairs.models import Repair
+from d_repairs.signing import verify_signed_url
 from .models import Quotation, QuotationItem
 from .forms import QuotationForm, QuotationItemForm
+from z_core.logging_utils import get_logger, log_user_action, log_pdf_event
+import time
+
+logger = get_logger("emr")
 
 
 @login_required
+@transaction.atomic
 def quotation_create(request, repair_id):
+    """
+    Create a quotation for a repair, or redirect to existing one.
+
+    Uses get_or_create to prevent race conditions when multiple users
+    try to create a quotation simultaneously.
+    """
     repair = get_object_or_404(Repair, pk=repair_id)
 
-    try:
-        quotation = repair.quotation
-        messages.info(request, "This repair already has a quotation.")
-    except Repair.quotation.RelatedObjectDoesNotExist:
-        quotation = Quotation.objects.create(
-            repair=repair,
-            created_by=request.user,
-            status=Quotation.Status.DRAFT,
-            discount_amount=0.00,
-        )
+    quotation, created = Quotation.objects.get_or_create(
+        repair=repair,
+        defaults={
+            "created_by": request.user,
+            "updated_by": request.user,
+            "status": Quotation.Status.DRAFT,
+        },
+    )
+
+    if created:
         messages.success(
             request, "Draft quotation created. You can now add line items."
         )
+    else:
+        messages.info(request, "This repair already has a quotation.")
 
     return redirect("quotations:detail", pk=quotation.pk)
 
 
 @login_required
 def quotation_detail(request, pk):
+    """Display quotation details with edit form."""
     quotation = get_object_or_404(
         Quotation.objects.select_related(
             "repair", "repair__device", "repair__device__customer"
@@ -45,7 +60,9 @@ def quotation_detail(request, pk):
     if request.method == "POST":
         form = QuotationForm(request.POST, instance=quotation)
         if form.is_valid():
-            form.save()
+            quotation = form.save(commit=False)
+            quotation.updated_by = request.user
+            quotation.save()
             messages.success(request, "Quotation updated successfully.")
             return redirect("quotations:detail", pk=quotation.pk)
     else:
@@ -76,7 +93,9 @@ def quotation_detail(request, pk):
 
 
 @login_required
+@transaction.atomic
 def quotation_item_add(request, quotation_id):
+    """Add a line item to a quotation."""
     quotation = get_object_or_404(
         Quotation.objects.select_related(
             "repair", "repair__device", "repair__device__customer"
@@ -93,7 +112,14 @@ def quotation_item_add(request, quotation_id):
         if form.is_valid():
             item = form.save(commit=False)
             item.quotation = quotation
+            item.created_by = request.user
+            item.updated_by = request.user
             item.save()
+
+            # Update quotation's updated_by
+            quotation.updated_by = request.user
+            quotation.save(update_fields=["updated_by", "updated_at"])
+
             messages.success(request, "Quotation item added successfully.")
             return redirect("quotations:detail", pk=quotation.pk)
     else:
@@ -122,7 +148,9 @@ def quotation_item_add(request, quotation_id):
 
 
 @login_required
+@transaction.atomic
 def quotation_item_edit(request, pk):
+    """Edit a quotation line item."""
     item = get_object_or_404(
         QuotationItem.objects.select_related(
             "quotation",
@@ -141,7 +169,14 @@ def quotation_item_edit(request, pk):
     if request.method == "POST":
         form = QuotationItemForm(request.POST, instance=item)
         if form.is_valid():
-            form.save()
+            item = form.save(commit=False)
+            item.updated_by = request.user
+            item.save()
+
+            # Update quotation's updated_by
+            quotation.updated_by = request.user
+            quotation.save(update_fields=["updated_by", "updated_at"])
+
             messages.success(request, "Quotation item updated successfully.")
             return redirect("quotations:detail", pk=quotation.pk)
     else:
@@ -172,7 +207,9 @@ def quotation_item_edit(request, pk):
 
 @login_required
 @require_POST
+@transaction.atomic
 def quotation_item_delete(request, pk):
+    """Delete a quotation line item."""
     item = get_object_or_404(
         QuotationItem.objects.select_related("quotation"),
         pk=pk,
@@ -184,14 +221,20 @@ def quotation_item_delete(request, pk):
         return redirect("quotations:detail", pk=quotation.pk)
 
     item.delete()
+
+    # Update quotation's updated_by
+    quotation.updated_by = request.user
+    quotation.save(update_fields=["updated_by", "updated_at"])
+
     messages.success(request, "Quotation item deleted successfully.")
     return redirect("quotations:detail", pk=quotation.pk)
 
 
 def quotation_print(request, pk):
-    pdf_token = request.GET.get("pdf_token", "")
-    if not request.user.is_authenticated and pdf_token != settings.PDF_SECRET_TOKEN:
-        return redirect(settings.LOGIN_URL)
+    """Render quotation for printing or PDF generation."""
+    if not request.user.is_authenticated:
+        if not verify_signed_url(request):
+            return redirect(settings.LOGIN_URL)
 
     quotation = get_object_or_404(
         Quotation.objects.select_related(
@@ -219,6 +262,7 @@ def quotation_print(request, pk):
 
 @login_required
 def quotation_pdf(request, pk):
+    """Generate and download quotation as PDF."""
     quotation = get_object_or_404(Quotation, pk=pk)
 
     print_url = request.build_absolute_uri(reverse("quotations:print", args=[pk]))
@@ -239,7 +283,9 @@ def quotation_pdf(request, pk):
 
 
 @login_required
+@transaction.atomic
 def quotation_send(request, pk):
+    """Send quotation to customer via email."""
     if request.method != "POST":
         return redirect("quotations:detail", pk=pk)
 
@@ -259,15 +305,38 @@ def quotation_send(request, pk):
         messages.error(
             request, f"{customer.full_name} does not have an email address on file."
         )
+        log_user_action(
+            request, "send_quotation_failed", {"quotation_id": pk, "reason": "no_email"}
+        )
         return redirect("quotations:detail", pk=pk)
 
     # Generate PDF
+    start_time = time.time()
     try:
         from d_repairs.utils import generate_pdf
 
         print_url = request.build_absolute_uri(reverse("quotations:print", args=[pk]))
         pdf_bytes = generate_pdf(print_url)
+
+        log_pdf_event(
+            request=request,
+            event="generate_for_email",
+            document_type="quotation",
+            document_id=quotation.id,
+            success=True,
+            duration_ms=(time.time() - start_time) * 1000,
+        )
+
     except Exception as e:
+        log_pdf_event(
+            request=request,
+            event="generate_for_email",
+            document_type="quotation",
+            document_id=quotation.id,
+            success=False,
+            duration_ms=(time.time() - start_time) * 1000,
+            error=str(e),
+        )
         messages.error(request, f"PDF generation failed: {str(e)}")
         return redirect("quotations:detail", pk=pk)
 
@@ -296,15 +365,18 @@ def quotation_send(request, pk):
         body=body,
         pdf_bytes=pdf_bytes,
         filename=filename,
+        request=request,
+        event_type="send_quotation",
     )
 
     if success:
         messages.success(request, f"Quotation sent to {customer.email} successfully.")
 
-        # Update quotation status to Sent if it was Draft
         if quotation.status == Quotation.Status.DRAFT:
             quotation.status = Quotation.Status.SENT
-            quotation.save()
+            Quotation.objects.filter(pk=quotation.pk).update(
+                status=Quotation.Status.SENT, updated_by=request.user
+            )
             messages.info(request, "Quotation status updated to Sent.")
     else:
         messages.error(

@@ -1,10 +1,15 @@
 from django.db import models
-from django.conf import settings
-from b_customers.models import TimestampedModel
+from z_core.models import AuditModel
 from d_repairs.models import Repair
 
 
-class Payment(TimestampedModel):
+class Payment(AuditModel):
+    """
+    Payment model for tracking payments against repairs.
+
+    A repair can have multiple payments (down payment, partial, full settlement).
+    """
+
     class PaymentType(models.TextChoices):
         DOWN_PAYMENT = "down_payment", "Down Payment"
         PARTIAL = "partial", "Partial Payment"
@@ -16,7 +21,6 @@ class Payment(TimestampedModel):
         BANK_TRANSFER = "bank_transfer", "Bank Transfer"
         E_WALLET = "e_wallet", "E-Wallet"
 
-    # ForeignKey (1:N) — one repair can have multiple payments
     repair = models.ForeignKey(
         Repair, on_delete=models.PROTECT, related_name="payments"
     )
@@ -30,16 +34,11 @@ class Payment(TimestampedModel):
         help_text="Transaction reference for card/bank/e-wallet payments",
     )
 
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name="payments_created",
-        null=True,
-        blank=True,
-    )
-
     class Meta:
-        ordering = ["created_at"]  # Chronological order
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["repair", "created_at"]),
+        ]
 
     def __str__(self):
         return f"₱{self.amount:,.2f} ({self.get_payment_type_display()}) — Repair #{self.repair.id}"

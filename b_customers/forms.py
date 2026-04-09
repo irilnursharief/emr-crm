@@ -1,12 +1,15 @@
+"""
+Customer forms with centralized styling.
+"""
+
 from django import forms
+from z_core.forms import StyledModelForm, FIELD_CLASS, TEXTAREA_CLASS
 from .models import Customer
 
-# Define the shared classes for light mode
-FIELD_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
-TEXTAREA_CLASS = FIELD_CLASS  # Use the same class for textareas
 
+class CustomerForm(StyledModelForm):
+    """Form for creating and editing customers."""
 
-class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
         fields = ["first_name", "last_name", "contact_number", "email", "address"]
