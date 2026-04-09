@@ -1,13 +1,15 @@
+"""
+Repair forms with centralized styling.
+"""
+
 from django import forms
+from z_core.forms import StyledModelForm, FIELD_CLASS, TEXTAREA_CLASS, SELECT_CLASS
 from .models import Repair, RepairNote
 
-# Use your existing correct light mode classes
-FIELD_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
-TEXTAREA_CLASS = FIELD_CLASS
-SELECT_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
 
+class RepairCreateForm(StyledModelForm):
+    """Form for creating new repair tickets."""
 
-class RepairCreateForm(forms.ModelForm):
     class Meta:
         model = Repair
         fields = [
@@ -45,8 +47,8 @@ class RepairCreateForm(forms.ModelForm):
         }
 
 
-class RepairIntakeForm(forms.ModelForm):
-    """For all roles — editing intake fields only."""
+class RepairIntakeForm(StyledModelForm):
+    """Form for editing intake information (all roles)."""
 
     class Meta:
         model = Repair
@@ -75,8 +77,8 @@ class RepairIntakeForm(forms.ModelForm):
         }
 
 
-class RepairTechnicianForm(forms.ModelForm):
-    """For technicians and admins only — technical findings + status."""
+class RepairTechnicianForm(StyledModelForm):
+    """Form for editing technical details (technicians and admins only)."""
 
     class Meta:
         model = Repair
@@ -108,14 +110,16 @@ class RepairTechnicianForm(forms.ModelForm):
         }
 
 
-class RepairNoteForm(forms.ModelForm):
+class RepairNoteForm(StyledModelForm):
+    """Form for adding repair journal notes."""
+
     class Meta:
         model = RepairNote
         fields = ["content"]
         widgets = {
             "content": forms.Textarea(
                 attrs={
-                    "class": TEXTAREA_CLASS,  # Changed to use the constant
+                    "class": TEXTAREA_CLASS,
                     "placeholder": "Add a repair note...",
                     "rows": 4,
                 }

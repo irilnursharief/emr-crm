@@ -1,5 +1,7 @@
 {% extends "base_dashboard.html" %}
 
+{% load status_tags %}
+
 {% block title %}{{ device.brand }} {{ device.model }}{% endblock %}
 {% block page_title %}{{ device.brand }} {{ device.model }}{% endblock %}
 {% block page_subtitle %}
@@ -90,17 +92,7 @@
                 <p class="text-xs text-gray-500 mt-0.5">{{ repair.created_at|date:"M d, Y" }}</p>
               </div>
               <div class="flex items-center gap-3">
-                {% if repair.status == 'pending' %}
-                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">{{ repair.get_status_display }}</span>
-                {% elif repair.status == 'in_progress' %}
-                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{{ repair.get_status_display }}</span>
-                {% elif repair.status == 'awaiting_approval' %}
-                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">{{ repair.get_status_display }}</span>
-                {% elif repair.status == 'completed' %}
-                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">{{ repair.get_status_display }}</span>
-                {% elif repair.status == 'released' %}
-                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ repair.get_status_display }}</span>
-                {% endif %}
+                {% repair_status_badge repair.status repair.get_status_display %}
                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>

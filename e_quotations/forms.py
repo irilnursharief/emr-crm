@@ -1,11 +1,13 @@
+"""
+Quotation forms with centralized styling.
+"""
+
 from django import forms
+from z_core.forms import StyledModelForm, FIELD_CLASS, SELECT_CLASS
 from .models import Quotation, QuotationItem
 
-FIELD_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
-SELECT_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
 
-
-class QuotationForm(forms.ModelForm):
+class QuotationForm(StyledModelForm):
     """Form for updating quotation status and discount."""
 
     class Meta:
@@ -23,8 +25,8 @@ class QuotationForm(forms.ModelForm):
         }
 
 
-class QuotationItemForm(forms.ModelForm):
-    """Form for adding/editing line items."""
+class QuotationItemForm(StyledModelForm):
+    """Form for adding/editing quotation line items."""
 
     class Meta:
         model = QuotationItem
@@ -61,13 +63,15 @@ class QuotationItemForm(forms.ModelForm):
         }
 
     def clean_quantity(self):
+        """Validate that quantity is at least 1."""
         quantity = self.cleaned_data.get("quantity")
-        if quantity < 1:
+        if quantity is not None and quantity < 1:
             raise forms.ValidationError("Quantity must be at least 1.")
         return quantity
 
     def clean_unit_price(self):
+        """Validate that unit price is greater than zero."""
         price = self.cleaned_data.get("unit_price")
-        if price <= 0:
+        if price is not None and price <= 0:
             raise forms.ValidationError("Unit price must be greater than zero.")
         return price

@@ -1,11 +1,15 @@
+"""
+Payment forms with centralized styling.
+"""
+
 from django import forms
+from z_core.forms import StyledModelForm, FIELD_CLASS, SELECT_CLASS
 from .models import Payment
 
-FIELD_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
-SELECT_CLASS = "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 shadow-sm"
 
+class PaymentForm(StyledModelForm):
+    """Form for recording payments."""
 
-class PaymentForm(forms.ModelForm):
     class Meta:
         model = Payment
         fields = ["amount", "payment_type", "mode_of_payment", "reference_number"]
@@ -28,7 +32,8 @@ class PaymentForm(forms.ModelForm):
         }
 
     def clean_amount(self):
+        """Validate that payment amount is greater than zero."""
         amount = self.cleaned_data.get("amount")
-        if amount <= 0:
+        if amount is not None and amount <= 0:
             raise forms.ValidationError("Payment amount must be greater than zero.")
         return amount
