@@ -1,0 +1,510 @@
+{% extends "base_dashboard.html" %}
+
+{% load status_tags %}
+{% load humanize %}
+
+{% block title %}Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
+{% block page_title %}Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
+{% block page_subtitle %}
+    <p class="mt-1 text-sm text-secondary">
+        {{ repair.device.customer.full_name }} —
+        {{ repair.device.brand }} {{ repair.device.model }}
+        <span class="font-mono text-gray-700">({{ repair.device.serial_number }})</span>
+    </p>
+{% endblock %}
+
+{% block content %}
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
+
+<!-- Hidden Radio Inputs -->
+<input type="radio" name="tabs" id="tab-overview" class="hidden peer/overview" checked>
+<input type="radio" name="tabs" id="tab-quotation" class="hidden peer/quotation">
+<input type="radio" name="tabs" id="tab-journal" class="hidden peer/journal">
+
+<!-- Tab Navigation -->
+<div class="mb-6 border-b border-gray-200">
+    <nav class="flex space-x-1">
+        <label for="tab-overview"
+               class="tab-label cursor-pointer px-5 py-3 text-sm font-medium rounded-t-lg transition-colors duration-200">
+            Overview
+        </label>
+        <label for="tab-quotation"
+               class="tab-label cursor-pointer px-5 py-3 text-sm font-medium rounded-t-lg transition-colors duration-200">
+            Quotation & Payments
+        </label>
+        <label for="tab-journal"
+               class="tab-label cursor-pointer px-5 py-3 text-sm font-medium rounded-t-lg transition-colors duration-200">
+            Repair Journal
+        </label>
+    </nav>
+</div>
+
+<!-- TAB 1: Overview -->
+<div class="hidden peer-checked/overview:block">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Repair Status -->
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <h2 class="text-primary font-semibold mb-4">Repair Status</h2>
+                <dl class="space-y-3">
+                    <div>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Status</dt>
+                        <dd class="mt-1">
+                            {% repair_status_badge repair.status repair.get_status_display %}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Assigned To</dt>
+                        <dd class="text-primary mt-1">
+                            {% if repair.assigned_to %}
+                                {{ repair.assigned_to.get_full_name|default:repair.assigned_to.username }}
+                            {% else %}
+                                <span class="text-secondary">Unassigned</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Created By</dt>
+                        <dd class="text-primary mt-1">
+                            {% if repair.created_by %}
+                                {{ repair.created_by.get_full_name|default:repair.created_by.username }}
+                            {% else %}
+                                <span class="text-secondary">—</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Date Created</dt>
+                        <dd class="text-gray-900 mt-1">{{ repair.created_at|date:"M d, Y" }}</dd>
+                    </div>
+                </dl>
+
+                <!-- Document Actions -->
+                <div class="pt-4 mt-4 border-t border-gray-200 space-y-2">
+
+                    <!-- Job Order -->
+                     <div class="flex gap-2">
+
+                        <a href="{% url 'repairs:job_order' repair.pk %}"
+                        target="_blank"
+                        class="w-full inline-flex justify-center items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                            Job Order
+                        </a>
+
+                        {% if repair.device.customer.email %}
+                            <form method="POST" action="{% url 'repairs:send_job_order' repair.pk %}">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition shadow-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                    Send
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-400 text-sm font-medium rounded-lg cursor-not-allowed"
+                                title="Customer has no email address">
+                                No Email
+                            </span>
+                        {% endif %}
+
+                     </div>
+
+                    <!-- Service Report (only for completed/released) -->
+                    {% if repair.status == 'completed' or repair.status == 'released' %}
+                        <div class="flex gap-2">
+
+                            <a href="{% url 'repairs:service_report' repair.pk %}"
+                            target="_blank"
+                            class="w-full inline-flex justify-center items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Service Report
+                            </a>
+
+                            {% if repair.device.customer.email %}
+                                <form method="POST" action="{% url 'repairs:send_service_report' repair.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition shadow-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                        Send
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-400 text-sm font-medium rounded-lg cursor-not-allowed"
+                                    title="Customer has no email address">
+                                    No Email
+                                </span>
+                            {% endif %}
+
+                        </div>
+                    {% endif %}
+                </div>
+                
+            </div>
+
+            <!-- Customer & Device -->
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <h2 class="text-primary font-semibold mb-4">Customer & Device</h2>
+                <dl class="space-y-3">
+                    <div>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Customer</dt>
+                        <dd class="text-primary mt-1">
+                            <a href="{% url 'customers:detail' repair.device.customer.pk %}"
+                               class="text-blue-600 hover:underline">
+                                {{ repair.device.customer.full_name }}
+                            </a>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Device</dt>
+                        <dd class="text-primary mt-1">{{ repair.device.brand }} {{ repair.device.model }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Type</dt>
+                        <dd class="text-gray-900 mt-1">{{ repair.device.get_type_display }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Serial Number</dt>
+                        <dd class="text-primary font-mono mt-1">{{ repair.device.serial_number }}</dd>
+                    </div>
+                    {% if repair.device.peripherals %}
+                    <div>
+                        <dt class="text-xs text-secondary uppercase tracking-wider">Peripherals</dt>
+                        <dd class="text-gray-900 mt-1">{{ repair.device.peripherals }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+
+        <!-- Right Column: Repair Details -->
+        <div class="lg:col-span-2">
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <h2 class="text-primary font-semibold mb-4">Repair Details</h2>
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs text-blue-600 uppercase tracking-wider font-semibold">
+                            Intake Information (Front Desk)
+                        </h3>
+                        <a href="{% url 'repairs:edit_intake' repair.pk %}?next={{ request.path|urlencode }}"
+                            class="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs rounded-lg transition shadow-sm">
+                            Edit
+                        </a>
+                    </div>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Issue Category</dt>
+                            <dd class="text-primary mt-1">{{ repair.issue_category }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Issue Description</dt>
+                            <dd class="text-gray-900 mt-1">{{ repair.issue_description }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">VMI (Initial Inspection)</dt>
+                            <dd class="text-gray-900 mt-1">{{ repair.vmi }}</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <div class="pt-4 border-t border-gray-200">
+                    {% if user.is_technician or user.is_admin %}
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs text-purple-600 uppercase tracking-wider font-semibold">
+                            Technical Findings (Technician)
+                        </h3>
+                        <a href="{% url 'repairs:edit_technical' repair.pk %}?next={{ request.path|urlencode }}"
+                        class="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs rounded-lg transition shadow-sm">
+                            Edit
+                        </a>
+                    </div>
+                    {% else %}
+                    <h3 class="text-xs text-purple-600 uppercase tracking-wider font-semibold mb-3">
+                        Technical Findings (Technician)
+                    </h3>
+                    {% endif %}
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">MI (Technical Inspection)</dt>
+                            <dd class="text-gray-900 mt-1">{{ repair.mi|default:"Not yet recorded." }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Diagnosis</dt>
+                            <dd class="text-gray-900 mt-1">{{ repair.diagnosis|default:"Not yet recorded." }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Recommendation</dt>
+                            <dd class="text-gray-900 mt-1">{{ repair.recommendation|default:"Not yet recorded." }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 2: Quotation & Payments -->
+<div class="hidden peer-checked/quotation:block">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left: Financial Summary -->
+        <div class="lg:col-span-1">
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-primary font-semibold">Financial Summary</h2>
+                    {% if quotation %}
+                        <a href="{% url 'quotations:detail' quotation.pk %}?next={{ request.path|urlencode }}"
+                        class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition shadow-sm">
+                            Manage Quotation
+                        </a>
+                    {% else %}
+                        <a href="{% url 'quotations:create' repair.pk %}?next={{ request.path|urlencode }}"
+                        class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition shadow-sm">
+                            + Create Quotation
+                        </a>
+                    {% endif %}
+                </div>
+
+                {% if quotation %}
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Quotation Status</dt>
+                            <dd class="mt-1">
+                                {% quotation_status_badge quotation.status quotation.get_status_display %}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Subtotal</dt>
+                            <dd class="text-primary mt-1">₱ {{ quotation.subtotal|floatformat:2|intcomma }}</dd>
+                        </div>
+                        {% if quotation.discount_amount %}
+                        <div>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Discount</dt>
+                            <dd class="text-red-600 mt-1">- ₱ {{ quotation.discount_amount|floatformat:2|intcomma }}</dd>
+                        </div>
+                        {% endif %}
+                        <div class="pt-2 border-t border-gray-200">
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Total</dt>
+                            <dd class="text-primary font-bold text-lg mt-1">₱ {{ quotation.total|floatformat:2|intcomma }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Total Paid</dt>
+                            <dd class="text-green-600 mt-1">₱ {{ repair.total_paid|floatformat:2|intcomma }}</dd>
+                        </div>
+                        <div class="pt-2 border-t border-gray-200">
+                            <dt class="text-xs text-secondary uppercase tracking-wider">Balance Due</dt>
+                            <dd class="mt-1 {% if repair.balance_due > 0 %}text-red-600 font-bold{% else %}text-green-600{% endif %}">
+                                ₱ {{ repair.balance_due|floatformat:2|intcomma }}
+                            </dd>
+                        </div>
+                    </dl>
+                {% else %}
+                    <p class="text-secondary text-sm">No quotation created yet. Create one to compute totals and balance due.</p>
+                    <div class="mt-4 text-xs text-secondary">
+                        Tip: Add line items (Parts/Labor/Fees) and apply discounts in the quotation screen.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right: Quotation Items + Payment History -->
+        <div class="lg:col-span-2 space-y-6">
+            {% if quotation %}
+            <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-primary font-semibold">Quotation Items</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-50 text-secondary">
+                            <tr>
+                                <th class="text-left font-medium px-6 py-3">Description</th>
+                                <th class="text-left font-medium px-6 py-3">Type</th>
+                                <th class="text-left font-medium px-6 py-3">Qty</th>
+                                <th class="text-left font-medium px-6 py-3">Unit Price</th>
+                                <th class="text-left font-medium px-6 py-3">Subtotal</th>
+                                <th class="text-left font-medium px-6 py-3">Warranty</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for item in quotation_items %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-primary">{{ item.description }}</td>
+                                    <td class="px-6 py-4 text-secondary">{{ item.get_item_type_display }}</td>
+                                    <td class="px-6 py-4 text-secondary">{{ item.quantity }}</td>
+                                    <td class="px-6 py-4 text-secondary">₱ {{ item.unit_price|floatformat:2|intcomma }}</td>
+                                    <td class="px-6 py-4 text-primary font-medium">₱ {{ item.subtotal|floatformat:2|intcomma }}</td>
+                                    <td class="px-6 py-4 text-secondary">
+                                        {% if item.warranty_days %}
+                                            {{ item.warranty_days }} day{{ item.warranty_days|pluralize }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td class="px-6 py-8 text-center text-secondary" colspan="6">
+                                        No line items yet.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <h2 class="text-primary font-semibold">Payment History</h2>
+                    <a href="{% url 'payments:create' %}?repair={{ repair.pk }}&next={{ request.path|urlencode }}"
+                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition shadow-sm">
+                        + Add Payment
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-50 text-secondary">
+                            <tr>
+                                <th class="text-left font-medium px-6 py-3">Amount</th>
+                                <th class="text-left font-medium px-6 py-3">Type</th>
+                                <th class="text-left font-medium px-6 py-3">Mode</th>
+                                <th class="text-left font-medium px-6 py-3">Reference</th>
+                                <th class="text-left font-medium px-6 py-3">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for payment in repair.payments.all %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-green-600 font-medium">₱ {{ payment.amount|floatformat:2|intcomma }}</td>
+                                    <td class="px-6 py-4 text-primary">{{ payment.get_payment_type_display }}</td>
+                                    <td class="px-6 py-4 text-secondary">{{ payment.get_mode_of_payment_display }}</td>
+                                    <td class="px-6 py-4 text-secondary font-mono">{{ payment.reference_number|default:"—" }}</td>
+                                    <td class="px-6 py-4 text-secondary">{{ payment.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td class="px-6 py-8 text-center text-secondary" colspan="5">
+                                        No payments recorded yet.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 3: Repair Journal -->
+<div class="hidden peer-checked/journal:block">
+    <div class="space-y-6">
+        <!-- Add Note Form -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <h3 class="text-primary font-semibold mb-4">Add Note</h3>
+            <form method="POST" action="{% url 'repairs:add_note' repair.pk %}">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                        <p class="text-sm text-red-600">{{ form.content.errors.0 }}</p>
+                    {% endif %}
+                    <button type="submit"
+                            class="cursor-pointer px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-xl transition duration-200 shadow-sm">
+                        Add Note
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Notes List -->
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-primary font-semibold">Journal Entries</h2>
+            </div>
+            <div class="divide-y divide-gray-200">
+                {% for note in repair.notes.all %}
+                    <div class="px-6 py-4 hover:bg-gray-50">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-primary">
+                                {{ note.created_by.get_full_name|default:note.created_by.username }}
+                            </span>
+                            <span class="text-xs text-secondary">
+                                {{ note.created_at|date:"M d, Y H:i" }}
+                            </span>
+                        </div>
+                        <p class="text-gray-700 text-sm">{{ note.content }}</p>
+                    </div>
+                {% empty %}
+                    <div class="px-6 py-8 text-center text-secondary text-sm">
+                        No journal entries yet.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>     
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tabs = {
+        overview: document.getElementById("tab-overview"),
+        quotation: document.getElementById("tab-quotation"),
+        journal: document.getElementById("tab-journal"),
+    };
+    const labels = {
+        overview: document.querySelector('label[for="tab-overview"]'),
+        quotation: document.querySelector('label[for="tab-quotation"]'),
+        journal: document.querySelector('label[for="tab-journal"]'),
+    };
+    const activeClass = ["text-primary", "border-b-2", "border-primary"];
+    const inactiveClass = ["text-secondary"];
+
+    function setActiveLabel(activeKey) {
+        Object.keys(labels).forEach(function (key) {
+            const label = labels[key];
+            if (!label) return;
+            if (key === activeKey) {
+                label.classList.remove(...inactiveClass);
+                activeClass.forEach(cls => label.classList.add(cls));
+            } else {
+                activeClass.forEach(cls => label.classList.remove(cls));
+                label.classList.add(...inactiveClass);
+            }
+        });
+    }
+    function activateTab(key) {
+        if (tabs[key]) tabs[key].checked = true;
+        setActiveLabel(key);
+    }
+    const hash = window.location.hash;
+    if (hash === "#quotation") activateTab("quotation");
+    else if (hash === "#journal") activateTab("journal");
+    else activateTab("overview");
+
+    Object.keys(tabs).forEach(function (key) {
+        const tab = tabs[key];
+        if (!tab) return;
+        tab.addEventListener("change", function () {
+            if (tab.checked) setActiveLabel(key);
+        });
+    });
+});
+</script>
+
+{% endblock %}

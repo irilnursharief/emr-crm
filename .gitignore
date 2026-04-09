@@ -12,3 +12,9 @@ wheels/
 
 # Tools
 tools/
+
+# Collected static files
+staticfiles/
+
+# Logs
+logs/*.log

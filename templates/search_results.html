@@ -1,0 +1,162 @@
+{% extends "base_dashboard.html" %}
+
+{% load status_tags %}
+
+{% block title %}Search Results{% endblock %}
+{% block page_title %}Search Results{% endblock %}
+{% block page_subtitle %}
+    {% if query %}
+        <p class="mt-1 text-sm text-secondary">
+            Found <span class="font-medium text-primary">{{ total_results }}</span> result{{ total_results|pluralize }}
+            for "<span class="font-medium text-primary">{{ query }}</span>"
+        </p>
+    {% else %}
+        <p class="mt-1 text-sm text-secondary">Enter a search term to find customers, devices, or repairs.</p>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
+
+{% if query %}
+
+    {% if total_results == 0 %}
+    <!-- No Results -->
+    <div class="bg-white border border-gray-200 rounded-xl p-12 shadow-sm text-center">
+        <p class="text-primary font-medium text-lg">No results found</p>
+        <p class="text-secondary text-sm mt-2">
+            No customers, devices, or repairs match "<span class="font-medium">{{ query }}</span>".
+        </p>
+        <p class="text-secondary text-sm mt-1">
+            Try a different search term or check the spelling.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Customers Results -->
+    {% if customers %}
+    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm mb-6">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-primary font-semibold">
+                Customers
+                <span class="ml-2 text-xs font-normal text-secondary">({{ customers|length }} found)</span>
+            </h2>
+            <a href="{% url 'customers:list' %}?q={{ query }}"
+               class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                View all in Customers →
+            </a>
+        </div>
+        <div class="divide-y divide-gray-200">
+            {% for c in customers %}
+                <a href="{% url 'customers:detail' c.pk %}"
+                   class="block px-6 py-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-primary font-medium">{{ c.full_name }}</p>
+                            <p class="text-xs text-secondary mt-0.5">
+                                {{ c.contact_number }}
+                                {% if c.email %} • {{ c.email }}{% endif %}
+                            </p>
+                        </div>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Devices Results -->
+    {% if devices %}
+    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm mb-6">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-primary font-semibold">
+                Devices
+                <span class="ml-2 text-xs font-normal text-secondary">({{ devices|length }} found)</span>
+            </h2>
+            <a href="{% url 'devices:list' %}?q={{ query }}"
+               class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                View all in Devices →
+            </a>
+        </div>
+        <div class="divide-y divide-gray-200">
+            {% for d in devices %}
+                <a href="{% url 'devices:detail' d.pk %}"
+                   class="block px-6 py-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-primary font-medium">{{ d.brand }} {{ d.model }}</p>
+                            <p class="text-xs text-secondary mt-0.5">
+                                <span class="font-mono">{{ d.serial_number }}</span>
+                                • {{ d.get_type_display }}
+                                • Owner: {{ d.customer.full_name }}
+                            </p>
+                        </div>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Repairs Results -->
+    {% if repairs %}
+    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm mb-6">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-primary font-semibold">
+                Repairs
+                <span class="ml-2 text-xs font-normal text-secondary">({{ repairs|length }} found)</span>
+            </h2>
+            <a href="{% url 'repairs:list' %}?q={{ query }}"
+               class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                View all in Repairs →
+            </a>
+        </div>
+        <div class="divide-y divide-gray-200">
+            {% for r in repairs %}
+                <a href="{% url 'repairs:detail' r.pk %}"
+                   class="block px-6 py-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-primary font-medium">
+                                <span class="font-mono text-blue-600">#{{ r.id|stringformat:"04d" }}</span>
+                                — {{ r.device.customer.full_name }}
+                            </p>
+                            <p class="text-xs text-secondary mt-0.5">
+                                {{ r.device.brand }} {{ r.device.model }}
+                                • {{ r.issue_category }}
+                                • {{ r.created_at|date:"M d, Y" }}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            {% repair_status_badge r.status r.get_status_display %}
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+{% else %}
+
+    <!-- Empty State: No Query -->
+    <div class="bg-white border border-gray-200 rounded-xl p-12 shadow-sm text-center">
+        <p class="text-primary font-medium text-lg">Search across your CRM</p>
+        <p class="text-secondary text-sm mt-2">
+            Find customers by name, devices by serial number, or repairs by issue category.
+        </p>
+    </div>
+
+{% endif %}
+
+{% endblock %}

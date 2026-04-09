@@ -1,0 +1,69 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Edit Repair Intake — #{{ repair.id|stringformat:"04d" }}{% endblock %}
+{% block page_title %}Edit Intake Details{% endblock %}
+{% block page_subtitle %}
+    <p class="mt-1 text-sm text-secondary">
+        Repair #{{ repair.id|stringformat:"04d" }} —
+        {{ repair.device.customer.full_name }} —
+        {{ repair.device.brand }} {{ repair.device.model }}
+    </p>
+{% endblock %}
+
+{% block content %}
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
+<div class="max-w-3xl">
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="space-y-6">
+                <!-- Issue Category -->
+                <div>
+                    <label for="{{ form.issue_category.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Issue Category <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.issue_category }}
+                    {% if form.issue_category.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.issue_category.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Issue Description -->
+                <div>
+                    <label for="{{ form.issue_description.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Issue Description <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.issue_description }}
+                    {% if form.issue_description.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.issue_description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- VMI -->
+                <div>
+                    <label for="{{ form.vmi.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        VMI (Initial Inspection) <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.vmi }}
+                    {% if form.vmi.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.vmi.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="pt-4 flex items-center gap-4">
+                    <button type="submit"
+                            class="cursor-pointer px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200 shadow-sm">
+                        Save Changes
+                    </button>
+                    <a href="{% if next %}{{ next }}{% else %}{% url 'repairs:detail' repair.pk %}{% endif %}"
+                        class="px-6 py-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-xl transition duration-200 shadow-sm">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

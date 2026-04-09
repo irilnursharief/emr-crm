@@ -1,0 +1,74 @@
+/* ================================ */
+/*     WATERMARK (Screen + Print)   */
+/* ================================ */
+/* Ensure content sits above watermark */
+.print-container {
+    position: relative;
+    z-index: 1;
+}
+
+.no-print {
+    position: relative;
+    z-index: 2;
+}
+
+/* ================================ */
+/*         PRINT MEDIA STYLES       */
+/* ================================ */
+
+@media print {
+    @page {
+        margin: 1.5cm;
+        size: A4;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        color: black !important;
+        font-size: 11pt;
+        font-family: 'Arial', sans-serif;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .print-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        position: relative;
+        z-index: 1;
+    }
+
+    .print-card {
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .page-break {
+        page-break-before: always;
+    }
+
+    table,
+    tr,
+    td,
+    th {
+        page-break-inside: avoid;
+    }
+
+    .rounded-xl,
+    .rounded-lg {
+        border-radius: 0 !important;
+    }
+
+    .shadow-sm {
+        box-shadow: none !important;
+    }
+}

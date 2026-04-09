@@ -1,0 +1,100 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Create Repair Ticket{% endblock %}
+{% block page_title %}Create Repair Ticket{% endblock %}
+{% block page_subtitle %}
+    <p class="mt-1 text-sm text-secondary">Intake form for new repair</p>
+{% endblock %}
+
+{% block content %}
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
+<div class="max-w-3xl">
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next|default:'' }}">
+
+            <!-- Device -->
+            <div>
+                <label for="{{ form.device.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                    Device <span class="text-red-500">*</span>
+                </label>
+                {{ form.device }}
+                {% if form.device.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.device.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Issue Category -->
+            <div class="mt-6">
+                <label for="{{ form.issue_category.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                    Issue Category <span class="text-red-500">*</span>
+                </label>
+                {{ form.issue_category }}
+                {% if form.issue_category.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.issue_category.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Issue Description -->
+            <div class="mt-6">
+                <label for="{{ form.issue_description.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                    Issue Description <span class="text-red-500">*</span>
+                </label>
+                {{ form.issue_description }}
+                {% if form.issue_description.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.issue_description.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- VMI -->
+            <div class="mt-6">
+                <label for="{{ form.vmi.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                    VMI (Initial Inspection) <span class="text-red-500">*</span>
+                </label>
+                {{ form.vmi }}
+                {% if form.vmi.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.vmi.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-secondary">Visible condition at drop-off (scratches, dents, accessories included, etc.)</p>
+            </div>
+
+            <!-- Assigned To & Status -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div>
+                    <label for="{{ form.assigned_to.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Assign To <span class="text-secondary font-normal">(optional)</span>
+                    </label>
+                    {{ form.assigned_to }}
+                    {% if form.assigned_to.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.assigned_to.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Status <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-8 flex items-center gap-4">
+                <button type="submit"
+                        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200 shadow-sm">
+                    Create Repair Ticket
+                </button>
+                <a href="{% if next %}{{ next }}{% else %}{% url 'repairs:list' %}{% endif %}"
+                   class="px-6 py-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-xl transition duration-200 shadow-sm">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

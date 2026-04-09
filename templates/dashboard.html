@@ -1,19 +1,274 @@
-{% extends "base.html" %}
+{% extends "base_dashboard.html" %}
 
-{% block title %}Dashboard — Hardware Repair CRM{% endblock %}
+{% load humanize %}
+{% load status_tags %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block page_subtitle %}
+    <p class="mt-1 text-sm text-secondary">Welcome back, {{ user.get_full_name|default:user.username }}!</p>
+{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-center min-h-screen">
-    <div class="text-center">
-        <h1 class="text-3xl font-bold text-white mb-4">Welcome, {{ user.username }}</h1>
-        <p class="text-gray-400 mb-6">Role: {{ user.get_role_display }}</p>
-        <form method="POST" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button type="submit"
-                    class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition duration-200">
-                Logout
-            </button>
-        </form>
-    </div>
+
+<!-- Quick Actions -->
+<div class="mb-8 flex flex-wrap gap-3">
+    <a href="{% url 'customers:create' %}"
+       class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition shadow-sm">
+        + New Customer
+    </a>
+    <a href="{% url 'devices:create' %}"
+       class="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition shadow-sm">
+        + New Device
+    </a>
+    <a href="{% url 'repairs:create' %}"
+       class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition shadow-sm">
+        + New Repair
+    </a>
 </div>
+
+<!-- Stat Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+    <!-- Active Repairs -->
+    <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-secondary">Active Repairs</p>
+                <p class="text-3xl font-bold text-primary mt-1">{{ active_repairs }}</p>
+            </div>
+            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                    class="w-6 h-6 text-primary">
+                    <path fill-rule="evenodd"
+                        d="M12 6.75a5.25 5.25 0 0 1 6.775-5.025.75.75 0 0 1 .313 1.248l-3.32 3.319c.063.475.276.934.641 1.299.365.365.824.578 1.3.64l3.318-3.319a.75.75 0 0 1 1.248.313 5.25 5.25 0 0 1-5.472 6.756c-1.018-.086-1.87.1-2.309.634L7.344 21.3A3.298 3.298 0 1 1 2.7 16.657l8.684-7.151c.533-.44.72-1.291.634-2.309A5.342 5.342 0 0 1 12 6.75ZM4.117 19.125a.75.75 0 0 1 .75-.75h.008a.75.75 0 0 1 .75.75v.008a.75.75 0 0 1-.75.75h-.008a.75.75 0 0 1-.75-.75v-.008Z"
+                        clip-rule="evenodd" />
+                    <path
+                        d="m10.076 8.64-2.201-2.2V4.874a.75.75 0 0 0-.364-.643l-3.75-2.25a.75.75 0 0 0-.916.113l-.75.75a.75.75 0 0 0-.113.916l2.25 3.75a.75.75 0 0 0 .643.364h1.564l2.062 2.062 1.575-1.297Z" />
+                    <path fill-rule="evenodd"
+                        d="m12.556 17.329 4.183 4.182a3.375 3.375 0 0 0 4.773-4.773l-3.306-3.305a6.803 6.803 0 0 1-1.53.043c-.394-.034-.682-.006-.867.042a.589.589 0 0 0-.167.063l-3.086 3.748Zm3.414-1.36a.75.75 0 0 1 1.06 0l1.875 1.876a.75.75 0 1 1-1.06 1.06L15.97 17.03a.75.75 0 0 1 0-1.06Z"
+                        clip-rule="evenodd" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Approval -->
+    <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-secondary">Awaiting Approval</p>
+                <p class="text-3xl font-bold text-primary mt-1">{{ pending_approval }}</p>
+            </div>
+            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                    class="w-6 h-6 text-tertiary">
+                    <path fill-rule="evenodd"
+                        d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z"
+                        clip-rule="evenodd" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Customers -->
+    <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-secondary">Total Customers</p>
+                <p class="text-3xl font-bold text-primary mt-1">{{ total_customers }}</p>
+            </div>
+            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                    class="w-6 h-6 text-secondary">
+                    <path fill-rule="evenodd"
+                        d="M8.25 6.75a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM15.75 9.75a3 3 0 1 1 6 0 3 3 0 0 1-6 0ZM2.25 9.75a3 3 0 1 1 6 0 3 3 0 0 1-6 0ZM6.31 15.117A6.745 6.745 0 0 1 12 12a6.745 6.745 0 0 1 6.709 7.498.75.75 0 0 1-.372.568A12.696 12.696 0 0 1 12 21.75c-2.305 0-4.47-.612-6.337-1.684a.75.75 0 0 1-.372-.568 6.787 6.787 0 0 1 1.019-4.38Z"
+                        clip-rule="evenodd" />
+                    <path
+                        d="M5.082 14.254a8.287 8.287 0 0 0-1.308 5.135 9.687 9.687 0 0 1-1.764-.44l-.115-.04a.563.563 0 0 1-.373-.487l-.01-.121a3.75 3.75 0 0 1 3.57-4.047ZM20.226 19.389a8.287 8.287 0 0 0-1.308-5.135 3.75 3.75 0 0 1 3.57 4.047l-.01.121a.563.563 0 0 1-.373.486l-.115.04c-.567.2-1.156.349-1.764.441Z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Revenue -->
+    <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-secondary">Total Revenue</p>
+                <p class="text-3xl font-bold text-green-600 mt-1">₱{{ total_revenue|floatformat:2|intcomma }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                    class="w-6 h-6 text-green-600">
+                    <path
+                        d="M10.464 8.746c.227-.18.497-.311.786-.394v2.795a2.252 2.252 0 0 1-.786-.393c-.394-.313-.546-.681-.546-1.004 0-.323.152-.691.546-1.004ZM12.75 15.662v-2.824c.347.085.664.228.921.421.427.32.579.686.579.991 0 .305-.152.671-.579.991a2.534 2.534 0 0 1-.921.42Z" />
+                    <path fill-rule="evenodd"
+                        d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v.816a3.836 3.836 0 0 0-1.72.756c-.712.566-1.112 1.35-1.112 2.178 0 .829.4 1.612 1.113 2.178.502.4 1.102.647 1.719.756v2.978a2.536 2.536 0 0 1-.921-.421l-.879-.66a.75.75 0 0 0-.9 1.2l.879.66c.533.4 1.169.645 1.821.75V18a.75.75 0 0 0 1.5 0v-.81a4.124 4.124 0 0 0 1.821-.749c.745-.559 1.179-1.344 1.179-2.191 0-.847-.434-1.632-1.179-2.191a4.122 4.122 0 0 0-1.821-.75V8.354c.29.082.559.213.786.393l.415.33a.75.75 0 0 0 .933-1.175l-.415-.33a3.836 3.836 0 0 0-1.719-.755V6Z"
+                        clip-rule="evenodd" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Two Column Layout: Recent Repairs + My Repairs / Stats -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Recent Repairs (2/3 width) -->
+    <div class="lg:col-span-2">
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-primary font-semibold">Recent Repairs</h2>
+                <a href="{% url 'repairs:list' %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    View All →
+                </a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm table-fixed">
+                    <thead class="bg-gray-50 text-secondary">
+                        <tr>
+                            <th class="text-left font-medium px-6 py-3 w-20">ID</th>
+                            <th class="text-left font-medium px-6 py-3 w-36">Customer</th>
+                            <th class="text-left font-medium px-6 py-3 w-44">Device</th>
+                            <th class="text-left font-medium px-6 py-3 w-52">Status</th>
+                            <th class="text-left font-medium px-6 py-3 w-32">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for r in recent_repairs %}
+                            <tr class="hover:bg-gray-50 cursor-pointer"
+                                onclick="window.location='{% url 'repairs:detail' r.pk %}'">
+
+                                <!-- ID -->
+                                <td class="px-6 py-4 font-mono text-blue-600 font-medium whitespace-nowrap">
+                                    #{{ r.id|stringformat:"04d" }}
+                                </td>
+
+                                <!-- Customer -->
+                                <td class="px-6 py-4 text-primary max-w-0">
+                                    <div class="truncate" title="{{ r.device.customer.full_name }}">
+                                        {{ r.device.customer.full_name }}
+                                    </div>
+                                </td>
+
+                                <!-- Device -->
+                                <td class="px-6 py-4 text-gray-700 max-w-0">
+                                    <div class="truncate" title="{{ r.device.brand }} {{ r.device.model }}">
+                                        {{ r.device.brand }} {{ r.device.model }}
+                                    </div>
+                                </td>
+
+                                <!-- Status -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% repair_status_badge r.status r.get_status_display %}
+                                </td>
+
+                                <!-- Date -->
+                                <td class="px-6 py-4 text-secondary whitespace-nowrap">
+                                    {{ r.created_at|date:"M d, Y" }}
+                                </td>
+
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td class="px-6 py-8 text-center text-secondary" colspan="5">
+                                    No repairs yet. <a href="{% url 'repairs:create' %}" class="text-blue-600 hover:underline">Create your first repair</a>.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Overview Stats + My Repairs -->
+    <div class="lg:col-span-1 space-y-6">
+
+        <!-- Overview Stats Card -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <h2 class="text-primary font-semibold mb-4">Overview</h2>
+            <dl class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <dt class="text-secondary text-sm">Total Devices</dt>
+                    <dd class="text-primary font-bold">{{ total_devices }}</dd>
+                </div>
+                <div class="flex items-center justify-between">
+                    <dt class="text-secondary text-sm">Completed Repairs</dt>
+                    <dd class="text-green-600 font-bold">{{ completed_repairs }}</dd>
+                </div>
+                <div class="flex items-center justify-between">
+                    <dt class="text-secondary text-sm">Active Repairs</dt>
+                    <dd class="text-blue-600 font-bold">{{ active_repairs }}</dd>
+                </div>
+                <div class="flex items-center justify-between">
+                    <dt class="text-secondary text-sm">Awaiting Approval</dt>
+                    <dd class="text-yellow-600 font-bold">{{ pending_approval }}</dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- My Repairs (Technician only) -->
+        {% if my_repairs is not None %}
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-primary font-semibold">My Assigned Repairs</h2>
+                <a href="{% url 'repairs:list' %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    View →
+                </a>
+            </div>
+
+            <div class="divide-y divide-gray-200">
+                {% for r in my_repairs %}
+                    <a href="{% url 'repairs:detail' r.pk %}"
+                    class="block px-6 py-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between gap-4">
+
+                            <!-- Left side (ID + Summary) -->
+                            <div class="min-w-0">
+                                <p class="text-primary font-mono text-sm font-medium whitespace-nowrap">
+                                    #{{ r.id|stringformat:"04d" }}
+                                </p>
+                                <p class="text-xs text-secondary mt-0.5 truncate"
+                                title="{{ r.device.customer.full_name }} — {{ r.device.brand }} {{ r.device.model }}">
+                                    {{ r.device.customer.full_name }} — {{ r.device.brand }} {{ r.device.model }}
+                                </p>
+                            </div>
+
+                            <!-- Right side (Status Badge) -->
+                            <div class="shrink-0">
+                                {% if r.status == 'pending' %}
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 whitespace-nowrap">
+                                        {{ r.get_status_display }}
+                                    </span>
+                                {% elif r.status == 'in_progress' %}
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 whitespace-nowrap">
+                                        {{ r.get_status_display }}
+                                    </span>
+                                {% elif r.status == 'awaiting_approval' %}
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 whitespace-nowrap">
+                                        {{ r.get_status_display }}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </a>
+                {% empty %}
+                    <div class="px-6 py-6 text-center text-secondary text-sm">
+                        No active repairs assigned to you.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+
 {% endblock %}

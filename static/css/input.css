@@ -1,3 +1,62 @@
 @import "tailwindcss";
 
 @source "../../templates/**/*.html";
+
+/* ============================= */
+/*      CUSTOM THEME COLORS      */
+/* ============================= */
+
+:root {
+    --color-primary: #2C3E50;
+    --color-secondary: #78909C;
+    --color-tertiary: #67798F;
+    --color-neutral: #F8F9FA;
+}
+
+/* Utility classes for custom theme */
+
+.bg-primary {
+    background-color: var(--color-primary);
+}
+
+.bg-secondary {
+    background-color: var(--color-secondary);
+}
+
+.bg-tertiary {
+    background-color: var(--color-tertiary);
+}
+
+.bg-neutral {
+    background-color: var(--color-neutral);
+}
+
+.text-primary {
+    color: var(--color-primary);
+}
+
+.text-secondary {
+    color: var(--color-secondary);
+}
+
+.text-tertiary {
+    color: var(--color-tertiary);
+}
+
+.border-primary {
+    border-color: var(--color-primary);
+}
+
+.border-secondary {
+    border-color: var(--color-secondary);
+}
+
+/* Tab label base styling */
+.tab-label {
+    color: var(--color-secondary);
+}
+
+.tab-label:hover {
+    color: var(--color-primary);
+    background-color: rgba(44, 62, 80, 0.05);
+}

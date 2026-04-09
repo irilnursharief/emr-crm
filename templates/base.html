@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Hardware Repair CRM{% endblock %}</title>
+    <title>{% block title %}EMR-CRM{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen">
+<body class="bg-neutral text-primary min-h-screen">
 
     {% if messages %}
         {% for message in messages %}
-            <div class="{% if message.tags == 'error' %}bg-red-600{% elif message.tags == 'success' %}bg-green-600{% else %}bg-blue-600{% endif %} text-white px-4 py-3 text-center text-sm">
+            <div class="{% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-600{% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-600{% else %}bg-blue-50 border-blue-200 text-blue-600{% endif %} border px-4 py-3 text-center text-sm">
                 {{ message }}
             </div>
         {% endfor %}

@@ -1,0 +1,113 @@
+{% extends "base_dashboard.html" %}
+
+{% load status_tags %}
+
+{% block title %}{{ device.brand }} {{ device.model }}{% endblock %}
+{% block page_title %}{{ device.brand }} {{ device.model }}{% endblock %}
+{% block page_subtitle %}
+  <p class="mt-1 text-sm text-secondary">
+    Owned by
+    <a class="text-blue-600 hover:underline" href="{% url 'customers:detail' device.customer.pk %}">
+      {{ device.customer.full_name }}
+    </a>
+    • <span class="font-mono text-gray-700">{{ device.serial_number }}</span>
+  </p>
+{% endblock %}
+
+{% block content %}
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <!-- Left: Device info -->
+  <div class="lg:col-span-1 space-y-6">
+
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-primary font-semibold">Device Details</h2>
+            <a href="{% url 'devices:edit' device.pk %}?next={{ request.path|urlencode }}"
+              class="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs rounded-lg transition shadow-sm">
+                Edit
+            </a>
+        </div>
+
+      <dl class="space-y-3">
+        <div>
+          <dt class="text-xs text-secondary uppercase tracking-wider">Type</dt>
+          <dd class="text-primary mt-1">{{ device.get_type_display }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-secondary uppercase tracking-wider">Brand</dt>
+          <dd class="text-primary mt-1">{{ device.brand }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-secondary uppercase tracking-wider">Model</dt>
+          <dd class="text-primary mt-1">{{ device.model }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-secondary uppercase tracking-wider">Serial Number</dt>
+          <dd class="text-primary font-mono mt-1">{{ device.serial_number }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-secondary uppercase tracking-wider">Peripherals</dt>
+          <dd class="text-gray-900 mt-1">{{ device.peripherals|default:"—" }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-secondary uppercase tracking-wider">Registered</dt>
+          <dd class="text-gray-900 mt-1">{{ device.created_at|date:"M d, Y" }}</dd>
+        </div>
+        {% if device.created_by %}
+        <div>
+          <dt class="text-xs text-secondary uppercase tracking-wider">Registered By</dt>
+          <dd class="text-gray-900 mt-1">{{ device.created_by.get_full_name|default:device.created_by.username }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+      <h2 class="text-primary font-semibold mb-4">Next Step</h2>
+      <a href="{% url 'repairs:create' %}?device={{ device.pk }}&next={{ request.path|urlencode }}"
+         class="w-full inline-flex justify-center px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition shadow-sm">
+        + Create Repair
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Right: Repairs for this device -->
+  <div class="lg:col-span-2 space-y-6">
+    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <h2 class="text-primary font-semibold">Repair History</h2>
+      </div>
+
+      <div class="divide-y divide-gray-200">
+        {% for repair in repairs %}
+          <a href="{% url 'repairs:detail' repair.pk %}"
+             class="block px-6 py-4 hover:bg-gray-50 transition-colors duration-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-primary font-mono text-sm font-medium">#{{ repair.id|stringformat:"04d" }}</p>
+                <p class="text-xs text-secondary mt-0.5">{{ repair.issue_category }}</p>
+                <p class="text-xs text-gray-500 mt-0.5">{{ repair.created_at|date:"M d, Y" }}</p>
+              </div>
+              <div class="flex items-center gap-3">
+                {% repair_status_badge repair.status repair.get_status_display %}
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </div>
+          </a>
+        {% empty %}
+          <div class="px-6 py-8 text-center text-secondary text-sm">
+            No repairs yet for this device.
+          </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

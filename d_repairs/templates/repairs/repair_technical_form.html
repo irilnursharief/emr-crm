@@ -1,0 +1,91 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Edit Technical Details — #{{ repair.id|stringformat:"04d" }}{% endblock %}
+{% block page_title %}Edit Technical Details{% endblock %}
+{% block page_subtitle %}
+    <p class="mt-1 text-sm text-secondary">
+        Repair #{{ repair.id|stringformat:"04d" }} —
+        {{ repair.device.customer.full_name }} —
+        {{ repair.device.brand }} {{ repair.device.model }}
+    </p>
+{% endblock %}
+
+{% block content %}
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
+<div class="max-w-3xl">
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="space-y-6">
+                <!-- MI -->
+                <div>
+                    <label for="{{ form.mi.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        MI (Technical Inspection)
+                    </label>
+                    {{ form.mi }}
+                    {% if form.mi.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.mi.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Diagnosis -->
+                <div>
+                    <label for="{{ form.diagnosis.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Diagnosis
+                    </label>
+                    {{ form.diagnosis }}
+                    {% if form.diagnosis.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.diagnosis.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Recommendation -->
+                <div>
+                    <label for="{{ form.recommendation.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                        Recommendation
+                    </label>
+                    {{ form.recommendation }}
+                    {% if form.recommendation.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.recommendation.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Status + Assigned To -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                            Status
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.assigned_to.id_for_label }}" class="block text-sm font-medium text-primary mb-2">
+                            Assigned To
+                        </label>
+                        {{ form.assigned_to }}
+                        {% if form.assigned_to.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.assigned_to.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="pt-4 flex items-center gap-4">
+                    <button type="submit"
+                            class="cursor-pointer px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200 shadow-sm">
+                        Save Changes
+                    </button>
+                    <a href="{% if next %}{{ next }}{% else %}{% url 'repairs:detail' repair.pk %}{% endif %}"
+                        class="px-6 py-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-xl transition duration-200 shadow-sm">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

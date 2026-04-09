@@ -1,0 +1,200 @@
+{% extends "base_dashboard.html" %}
+
+{% load status_tags %}
+{% load humanize %}
+
+{% block title %}Quotation — Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
+{% block page_title %}Quotation{% endblock %}
+{% block page_subtitle %}
+    <p class="mt-1 text-sm text-secondary">
+        Repair #{{ repair.id|stringformat:"04d" }} — {{ repair.device.customer.full_name }}
+    </p>
+{% endblock %}
+
+{% block content %}
+{% include "components/breadcrumbs.html" with breadcrumbs=breadcrumbs %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left Column: Quotation Info & Actions -->
+    <div class="lg:col-span-1 space-y-6">
+
+        <!-- Status Card -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <h2 class="text-primary font-semibold mb-4">Quotation Status</h2>
+            
+            <div class="mb-4">
+                {% quotation_status_badge quotation.status quotation.get_status_display %}
+            </div>
+
+            {% if can_edit %}
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-sm font-medium text-primary mb-2">Update Status</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-primary mb-2">Discount Amount</label>
+                    {{ form.discount_amount }}
+                    {% if form.discount_amount.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.discount_amount.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="cursor-pointer w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition shadow-sm">
+                    Save Changes
+                </button>
+            </form>
+            {% else %}
+                <p class="text-sm text-secondary">
+                    This quotation is {{ quotation.get_status_display|lower }} and cannot be edited.
+                </p>
+            {% endif %}
+        </div>
+
+
+        <!-- Document Actions -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-3">
+
+            <h3 class="text-sm font-medium text-primary mb-3">Documents</h3>
+
+            <!-- Print Quotation -->
+            <a href="{% url 'quotations:print' quotation.pk %}"
+                target="_blank"
+                class="w-full inline-flex justify-center items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Print Quotation
+            </a>
+
+            <!-- Send Email -->
+             {% if repair.device.customer.email %}
+                <form method="POST" action="{% url 'quotations:send' quotation.pk %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                        class="cursor-pointer w-full inline-flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        Send Quotation to {{ repair.device.customer.full_name }}
+                    </button>
+                </form>
+            
+            {% else %}
+                <div class="w-full inline-flex justify-center items-center gap-2 px-4 py-2 bg-gray-100 text-gray-400 text-sm font-medium rounded-lg cursor-not-allowed">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    No Email Address on File
+                </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Back to Repair -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <a href="{% url 'repairs:detail' repair.pk %}" class="w-full inline-flex justify-center px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition shadow-sm">
+                ← Back to Repair Details
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Right Column: Line Items -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <!-- Line Items Table -->
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-primary font-semibold">Line Items</h2>
+                {% if can_edit %}
+                <a href="{% url 'quotations:item_add' quotation.pk %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition shadow-sm">
+                    + Add Item
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-50 text-secondary">
+                        <tr>
+                            <th class="text-left font-medium px-6 py-3">Description</th>
+                            <th class="text-left font-medium px-6 py-3">Type</th>
+                            <th class="text-left font-medium px-6 py-3">Qty</th>
+                            <th class="text-left font-medium px-6 py-3">Unit Price</th>
+                            <th class="text-left font-medium px-6 py-3">Subtotal</th>
+                            {% if can_edit %}
+                            <th class="text-left font-medium px-6 py-3">Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for item in items %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-primary">{{ item.description }}</td>
+                                <td class="px-6 py-4 text-secondary">{{ item.get_item_type_display }}</td>
+                                <td class="px-6 py-4 text-secondary">{{ item.quantity }}</td>
+                                <td class="px-6 py-4 text-secondary">₱ {{ item.unit_price|floatformat:2|intcomma }}</td>
+                                <td class="px-6 py-4 text-primary font-medium">₱ {{ item.subtotal|floatformat:2|intcomma }}</td>
+                                {% if can_edit %}
+                                <td class="px-6 py-4">
+                                    <a href="{% url 'quotations:item_edit' item.pk %}" class="text-blue-600 hover:text-blue-800 text-sm mr-3">
+                                        Edit
+                                    </a>
+                                    <form method="POST" action="{% url 'quotations:item_delete' item.pk %}" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm cursor-pointer">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td class="px-6 py-8 text-center text-secondary" colspan="{% if can_edit %}6{% else %}5{% endif %}">
+                                    No line items yet. 
+                                    {% if can_edit %}
+                                    <a href="{% url 'quotations:item_add' quotation.pk %}" class="text-blue-600 hover:underline">Add your first item</a>.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <h2 class="text-primary font-semibold mb-4">Financial Summary</h2>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-secondary">Subtotal</dt>
+                    <dd class="text-primary">₱ {{ subtotal|floatformat:2|intcomma }}</dd>
+                </div>
+                {% if discount > 0 %}
+                <div class="flex justify-between">
+                    <dt class="text-secondary">Discount</dt>
+                    <dd class="text-red-600">- ₱ {{ discount|floatformat:2|intcomma }}</dd>
+                </div>
+                {% endif %}
+                <div class="pt-2 border-t border-gray-200 flex justify-between">
+                    <dt class="text-secondary font-medium">Total</dt>
+                    <dd class="text-primary font-bold text-lg">₱ {{ total|floatformat:2|intcomma }}</dd>
+                </div>
+            </dl>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
