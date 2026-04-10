@@ -15,6 +15,7 @@ tools/
 
 # Collected static files
 staticfiles/
+static/css/output.css
 
 # Logs
 logs/*.log
