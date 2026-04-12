@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: emr_db
+      POSTGRES_USER: emr_user
+      POSTGRES_PASSWORD: emr_password
+
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - logs_volume:/app/logs
+    env_file: .env
+    depends_on:
+      - db
+
+volumes:
+  postgres_data: {}
+  static_volume: {}
+  media_volume: {}
+  logs_volume: {}
