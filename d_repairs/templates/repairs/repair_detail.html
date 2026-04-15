@@ -3,8 +3,8 @@
 {% load status_tags %}
 {% load humanize %}
 
-{% block title %}Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
-{% block page_title %}Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
+{% block title %}Repair #{{ repair.repair_id|stringformat:"04d" }}{% endblock %}
+{% block page_title %}Repair #{{ repair.repair_id|stringformat:"04d" }}{% endblock %}
 {% block page_subtitle %}
     <p class="mt-1 text-sm text-secondary">
         {{ repair.device.customer.full_name }} —

@@ -137,7 +137,7 @@
                     <tr class="hover:bg-gray-50 cursor-pointer"
                         onclick="window.location='{% url 'repairs:detail' r.pk %}'">
                         <td class="px-6 py-4 font-mono text-blue-600 font-medium whitespace-nowrap">
-                            #{{ r.id|stringformat:"04d" }}
+                            {{ r.repair_id }}
                         </td>
                         <td class="px-6 py-4 text-primary font-medium">
                             {{ r.device.customer.full_name }}

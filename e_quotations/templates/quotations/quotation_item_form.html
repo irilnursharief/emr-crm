@@ -4,7 +4,7 @@
 {% block page_title %}{% if is_edit %}Edit Quotation Item{% else %}Add Quotation Item{% endif %}{% endblock %}
 {% block page_subtitle %}
     <p class="mt-1 text-sm text-secondary">
-        Quotation for Repair #{{ repair.id|stringformat:"04d" }} — {{ repair.device.customer.full_name }}
+        Quotation for Repair # {{ repair.repair_id }} — {{ repair.device.customer.full_name }}
     </p>
 {% endblock %}
 

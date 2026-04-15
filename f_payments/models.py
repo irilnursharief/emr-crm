@@ -41,4 +41,4 @@ class Payment(AuditModel):
         ]
 
     def __str__(self):
-        return f"₱{self.amount:,.2f} ({self.get_payment_type_display()}) — Repair #{self.repair.id}"
+        return f"₱{self.amount:,.2f} ({self.get_payment_type_display()}) — Repair #{self.repair.repair_id}"

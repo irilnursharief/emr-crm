@@ -145,7 +145,7 @@
 
                                 <!-- ID -->
                                 <td class="px-6 py-4 font-mono text-blue-600 font-medium whitespace-nowrap">
-                                    #{{ r.id|stringformat:"04d" }}
+                                    {{ r.repair_id }}
                                 </td>
 
                                 <!-- Customer -->
@@ -231,7 +231,7 @@
                             <!-- Left side (ID + Summary) -->
                             <div class="min-w-0">
                                 <p class="text-primary font-mono text-sm font-medium whitespace-nowrap">
-                                    #{{ r.id|stringformat:"04d" }}
+                                    {{ r.repair_id }}
                                 </p>
                                 <p class="text-xs text-secondary mt-0.5 truncate"
                                 title="{{ r.device.customer.full_name }} — {{ r.device.brand }} {{ r.device.model }}">

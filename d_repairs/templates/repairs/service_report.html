@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Report — Repair #{{ repair.id|stringformat:"04d" }}</title>
+    <title>Service Report — Repair # {{ repair.repair_id }}</title>
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
     <link rel="stylesheet" href="{% static 'css/print.css' %}">
 </head>
@@ -24,7 +24,7 @@
                 <p class="text-xs text-secondary hidden md:block">
                     💡 Tip: Uncheck "Headers and footers" in print settings for a clean output.
                 </p>
-                <span class="text-sm text-secondary">Service Report #{{ repair.id|stringformat:"04d" }}</span>
+                <span class="text-sm text-secondary">Service Report # {{ repair.repair_id }}</span>
 
                 <!-- Download PDF -->
                 <a href="{% url 'repairs:service_report_pdf' repair.pk %}"
@@ -58,7 +58,7 @@
                 </div>
                 <div class="text-right">
                     <p class="text-xl font-bold text-primary">SERVICE REPORT</p>
-                    <p class="text-secondary text-sm mt-1">#{{ repair.id|stringformat:"04d" }}</p>
+                    <p class="text-secondary text-sm mt-1"># {{ repair.repair_id }}</p>
                     <p class="text-secondary text-sm">{{ repair.updated_at|date:"F d, Y" }}</p>
                 </div>
             </div>

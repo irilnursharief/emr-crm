@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quotation — Repair #{{ repair.id|stringformat:"04d" }}</title>
+    <title>Quotation — Repair #{{ repair.repair_id|stringformat:"04d" }}</title>
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
     <link rel="stylesheet" href="{% static 'css/print.css' %}">
 </head>
@@ -23,7 +23,7 @@
             <p class="text-xs text-secondary hidden md:block">
                 💡 Tip: Uncheck "Headers and footers" in print settings for a clean output.
             </p>
-            <span class="text-sm text-secondary">Quotation for Repair #{{ repair.id|stringformat:"04d" }}</span>
+            <span class="text-sm text-secondary">Quotation for Repair #{{ repair.repair_id|stringformat:"04d" }}</span>
 
             <!-- Download PDF -->
             <a href="{% url 'quotations:pdf' quotation.pk %}"
@@ -56,7 +56,7 @@
                 </div>
                 <div class="text-right">
                     <p class="text-xl font-bold text-primary">QUOTATION</p>
-                    <p class="text-secondary text-sm mt-1">Repair #{{ repair.id|stringformat:"04d" }}</p>
+                    <p class="text-secondary text-sm mt-1">Repair #{{ repair.repair_id|stringformat:"04d" }}</p>
                     <p class="text-secondary text-sm">{{ quotation.created_at|date:"F d, Y" }}</p>
                 </div>
             </div>
