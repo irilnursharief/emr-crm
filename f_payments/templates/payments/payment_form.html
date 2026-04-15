@@ -1,10 +1,10 @@
 {% extends "base_dashboard.html" %}
 
-{% block title %}Add Payment — Repair #{{ repair.id|stringformat:"04d" }}{% endblock %}
+{% block title %}Add Payment — Repair #{{ repair.repair_id|stringformat:"04d" }}{% endblock %}
 {% block page_title %}Add Payment{% endblock %}
 {% block page_subtitle %}
     <p class="mt-1 text-sm text-secondary">
-        Repair #{{ repair.id|stringformat:"04d" }} — {{ repair.device.customer.full_name }}
+        Repair #{{ repair.repair_id|stringformat:"04d" }} — {{ repair.device.customer.full_name }}
     </p>
 {% endblock %}
 

@@ -56,7 +56,9 @@ def repair_list(request):
                 "device__customer__last_name",
             )
         ).filter(
-            Q(device__customer__first_name__icontains=search_query)
+            Q(repair_id__iexact=search_query)
+            | Q(repair_id__icontains=search_query)
+            | Q(device__customer__first_name__icontains=search_query)
             | Q(device__customer__last_name__icontains=search_query)
             | Q(customer_full_name__icontains=search_query)
             | Q(device__brand__icontains=search_query)
@@ -160,7 +162,7 @@ def repair_detail(request, pk):
             "breadcrumbs": [
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Repairs", "url": "/repairs/"},
-                {"label": f"Repair #{repair.id:04d}", "url": None},
+                {"label": f"Repair {repair.repair_id}", "url": None},
             ],
         },
     )
@@ -183,11 +185,11 @@ def repair_create(request):
             log_user_action(
                 request,
                 "created_repair",
-                {"repair_id": repair.id, "device_id": repair.device_id},
+                {"repair_id": repair.repair_id, "device_id": repair.device_id},
             )
 
             messages.success(
-                request, f"Repair ticket #{repair.id:04d} created successfully."
+                request, f"Repair ticket # {repair.repair_id} created successfully."
             )
             return redirect("repairs:detail", pk=repair.pk)
     else:
@@ -226,7 +228,7 @@ def repair_edit_intake(request, pk):
             form.save()
             Repair.objects.filter(pk=repair.pk).update(updated_by=request.user)
             messages.success(
-                request, f"Repair #{repair.id:04d} intake details updated."
+                request, f"Repair # {repair.repair_id} intake details updated."
             )
             if next_url:
                 return redirect(next_url)
@@ -244,7 +246,10 @@ def repair_edit_intake(request, pk):
             "breadcrumbs": [
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Repairs", "url": "/repairs/"},
-                {"label": f"Repair #{repair.id:04d}", "url": f"/repairs/{repair.pk}/"},
+                {
+                    "label": f"Repair # {repair.repair_id}",
+                    "url": f"/repairs/{repair.pk}/",
+                },
                 {"label": "Edit Intake", "url": None},
             ],
         },
@@ -267,7 +272,7 @@ def repair_edit_technical(request, pk):
             form.save()
             Repair.objects.filter(pk=repair.pk).update(updated_by=request.user)
             messages.success(
-                request, f"Repair #{repair.id:04d} technical details updated."
+                request, f"Repair # {repair.repair_id} technical details updated."
             )
             if next_url:
                 return redirect(next_url)
@@ -285,7 +290,10 @@ def repair_edit_technical(request, pk):
             "breadcrumbs": [
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Repairs", "url": "/repairs/"},
-                {"label": f"Repair #{repair.id:04d}", "url": f"/repairs/{repair.pk}/"},
+                {
+                    "label": f"Repair # {repair.repair_id}",
+                    "url": f"/repairs/{repair.pk}/",
+                },
                 {"label": "Edit Technical", "url": None},
             ],
         },
@@ -404,7 +412,7 @@ def repair_job_order_pdf(request, pk):
             request=request,
             event="download",
             document_type="job_order",
-            document_id=repair.id,
+            document_id=repair.repair_id,
             success=True,
             duration_ms=duration_ms,
         )
@@ -415,7 +423,7 @@ def repair_job_order_pdf(request, pk):
             request=request,
             event="download",
             document_type="job_order",
-            document_id=repair.id,
+            document_id=repair.repair_id,
             success=False,
             duration_ms=duration_ms,
             error=str(e),
@@ -425,7 +433,7 @@ def repair_job_order_pdf(request, pk):
 
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = (
-        f'attachment; filename="job-order-{repair.id:04d}.pdf"'
+        f'attachment; filename="job-order-{repair.repair_id}.pdf"'
     )
     return response
 
@@ -448,7 +456,7 @@ def repair_service_report_pdf(request, pk):
             request=request,
             event="download",
             document_type="service_report",
-            document_id=repair.id,
+            document_id=repair.repair_id,
             success=True,
             duration_ms=duration_ms,
         )
@@ -459,7 +467,7 @@ def repair_service_report_pdf(request, pk):
             request=request,
             event="download",
             document_type="service_report",
-            document_id=repair.id,
+            document_id=repair.repair_id,
             success=False,
             duration_ms=duration_ms,
             error=str(e),
@@ -469,7 +477,7 @@ def repair_service_report_pdf(request, pk):
 
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = (
-        f'attachment; filename="service-report-{repair.id:04d}.pdf"'
+        f'attachment; filename="service-report-{repair.repair_id}.pdf"'
     )
     return response
 
@@ -510,7 +518,7 @@ def repair_send_job_order(request, pk):
             request=request,
             event="generate_for_email",
             document_type="job_order",
-            document_id=repair.id,
+            document_id=repair.repair_id,
             success=True,
             duration_ms=(time.time() - start_time) * 1000,
         )
@@ -520,7 +528,7 @@ def repair_send_job_order(request, pk):
             request=request,
             event="generate_for_email",
             document_type="job_order",
-            document_id=repair.id,
+            document_id=repair.repair_id,
             success=False,
             duration_ms=(time.time() - start_time) * 1000,
             error=str(e),
@@ -531,7 +539,7 @@ def repair_send_job_order(request, pk):
     # Send email
     from d_repairs.email_utils import send_document_email
 
-    subject = f"Job Order #{repair.id:04d} — Elektro Master Repairs"
+    subject = f"Job Order # {repair.repair_id} — Elektro Master Repairs"
     body = (
         f"Dear {customer.full_name},\n\n"
         f"Please find attached your Job Order for the following repair:\n\n"
@@ -543,7 +551,7 @@ def repair_send_job_order(request, pk):
         f"Thank you for trusting Elektro Master Repairs.\n"
         f"Elektro Master Repairs Team"
     )
-    filename = f"job-order-{repair.id:04d}.pdf"
+    filename = f"job-order-{repair.repair_id}.pdf"
 
     success = send_document_email(
         to_email=customer.email,
@@ -558,7 +566,7 @@ def repair_send_job_order(request, pk):
     if success:
         messages.success(
             request,
-            f"Job Order #{repair.id:04d} sent to {customer.email} successfully.",
+            f"Job Order # {repair.repair_id} sent to {customer.email} successfully.",
         )
     else:
         messages.error(
@@ -620,7 +628,7 @@ def repair_send_service_report(request, pk):
             request=request,
             event="generate_for_email",
             document_type="service_report",
-            document_id=repair.id,
+            document_id=repair.repair_id,
             success=True,
             duration_ms=(time.time() - start_time) * 1000,
         )
@@ -630,7 +638,7 @@ def repair_send_service_report(request, pk):
             request=request,
             event="generate_for_email",
             document_type="service_report",
-            document_id=repair.id,
+            document_id=repair.repair_id,
             success=False,
             duration_ms=(time.time() - start_time) * 1000,
             error=str(e),
@@ -641,7 +649,7 @@ def repair_send_service_report(request, pk):
     # Send email
     from d_repairs.email_utils import send_document_email
 
-    subject = f"Service Report #{repair.id:04d} — Elektro Master Repairs"
+    subject = f"Service Report # {repair.repair_id} — Elektro Master Repairs"
     body = (
         f"Dear {customer.full_name},\n\n"
         f"Your device has been serviced. Please find attached the Service Report:\n\n"
@@ -654,7 +662,7 @@ def repair_send_service_report(request, pk):
         f"Thank you for trusting Elektro Master Repairs.\n"
         f"Elektro Master Repairs Team"
     )
-    filename = f"service-report-{repair.id:04d}.pdf"
+    filename = f"service-report-{repair.repair_id}.pdf"
 
     success = send_document_email(
         to_email=customer.email,
@@ -669,7 +677,7 @@ def repair_send_service_report(request, pk):
     if success:
         messages.success(
             request,
-            f"Service Report #{repair.id:04d} sent to {customer.email} successfully.",
+            f"Service Report # {repair.repair_id} sent to {customer.email} successfully.",
         )
     else:
         messages.error(

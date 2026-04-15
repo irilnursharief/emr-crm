@@ -5,6 +5,7 @@ import random
 from b_customers.models import Customer
 from c_devices.models import Device
 from d_repairs.models import Repair
+from datetime import datetime
 
 User = get_user_model()
 fake = Faker("en_PH")  # Philippine locale for realistic data
@@ -47,6 +48,11 @@ class Command(BaseCommand):
             Customer.objects.all().delete()
 
             self.stdout.write(self.style.WARNING("Existing data cleared."))
+
+        import datetime
+
+        current_date = datetime.date.today().strftime("%m%d")
+        repair_counter = 1
 
         # Get a system user to assign as created_by
         admin_user = User.objects.filter(role__in=["admin"]).first()
@@ -181,7 +187,11 @@ class Command(BaseCommand):
                 for _ in range(num_repairs):
                     issue_cat = random.choice(issue_categories)
 
+                    # Generate the human-readable ID
+                    generated_repair_id = f"ERM-{current_date}-{repair_counter:03d}"
+
                     repair = Repair.objects.create(
+                        repair_id=generated_repair_id,
                         device=device,
                         issue_category=issue_cat,
                         issue_description=fake.paragraph(nb_sentences=2),
@@ -232,6 +242,7 @@ class Command(BaseCommand):
                         ),
                         created_by=admin_user,
                     )
+                    repair_counter += 1
                     repairs_created += 1
 
                     # --- Create Quotation (70% chance) ---

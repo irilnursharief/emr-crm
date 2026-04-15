@@ -3,6 +3,7 @@ from django.conf import settings
 from django.urls import reverse
 from z_core.models import AuditModel
 from c_devices.models import Device
+from datetime import datetime
 
 
 class Repair(AuditModel):
@@ -25,6 +26,15 @@ class Repair(AuditModel):
         RELEASED = "released", "Released to Customer"
 
     device = models.ForeignKey(Device, on_delete=models.PROTECT, related_name="repairs")
+
+    # Human-readable repair ID
+    repair_id = models.CharField(
+        max_length=20,
+        unique=True,
+        db_index=True,
+        blank=True,
+        help_text="Format: ERM-MMDD-NNN (auto-generated)",
+    )
 
     # Intake Fields (Required at drop-off)
     issue_category = models.CharField(max_length=100)
@@ -59,10 +69,41 @@ class Repair(AuditModel):
             models.Index(fields=["status"]),
             models.Index(fields=["status", "-created_at"]),
             models.Index(fields=["assigned_to", "status"]),
+            models.Index(fields=["repair_id"]),
         ]
 
+    def save(self, *args, **kwargs):
+        # Auto-generate repair_id if not set
+        if not self.repair_id:
+            self.repair_id = self.generate_repair_id()
+        super().save(*args, **kwargs)
+
+    def generate_repair_id(self):
+        """Generate unique repair ID in format ERM-MMDD-NNN"""
+        today = datetime.now()
+        date_prefix = today.strftime("%m%d")  # MMDD format: 0414
+        prefix = f"ERM-{date_prefix}-"
+
+        # Find the last repair created today
+        from django.db.models import Max
+
+        last_repair = (
+            Repair.objects.filter(repair_id__startswith=prefix)
+            .order_by("-repair_id")
+            .first()
+        )
+
+        if last_repair:
+            # Extract the sequence number and increment
+            last_seq = int(last_repair.repair_id.split("-")[-1])
+            new_seq = last_seq + 1
+        else:
+            new_seq = 1
+
+        return f"{prefix}{new_seq:03d}"
+
     def __str__(self):
-        return f"Repair #{self.id} | {self.device}"
+        return f"Repair #{self.repair_id} | {self.device}"
 
     def get_absolute_url(self):
         return reverse("repairs:detail", args=[self.pk])

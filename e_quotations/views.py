@@ -85,7 +85,10 @@ def quotation_detail(request, pk):
             "breadcrumbs": [
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Repairs", "url": "/repairs/"},
-                {"label": f"Repair #{repair.id:04d}", "url": f"/repairs/{repair.pk}/"},
+                {
+                    "label": f"Repair # {repair.repair_id}",
+                    "url": f"/repairs/{repair.pk}/",
+                },
                 {"label": "Quotation", "url": None},
             ],
         },
@@ -137,7 +140,7 @@ def quotation_item_add(request, quotation_id):
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Repairs", "url": "/repairs/"},
                 {
-                    "label": f"Repair #{quotation.repair.id:04d}",
+                    "label": f"Repair # {quotation.repair.repair_id}",
                     "url": f"/repairs/{quotation.repair.pk}/",
                 },
                 {"label": "Quotation", "url": f"/quotations/{quotation.pk}/"},
@@ -195,7 +198,7 @@ def quotation_item_edit(request, pk):
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Repairs", "url": "/repairs/"},
                 {
-                    "label": f"Repair #{quotation.repair.id:04d}",
+                    "label": f"Repair #{quotation.repair.repair_id:04d}",
                     "url": f"/repairs/{quotation.repair.pk}/",
                 },
                 {"label": "Quotation", "url": f"/quotations/{quotation.pk}/"},
@@ -277,7 +280,7 @@ def quotation_pdf(request, pk):
 
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = (
-        f'attachment; filename="quotation-repair-{quotation.repair.id:04d}.pdf"'
+        f'attachment; filename="quotation-repair-{quotation.repair.repair_id:04d}.pdf"'
     )
     return response
 
@@ -343,7 +346,7 @@ def quotation_send(request, pk):
     # Send email
     from d_repairs.email_utils import send_document_email
 
-    subject = f"Quotation for Repair #{repair.id:04d} — Elektro Master Repairs"
+    subject = f"Quotation for Repair # {repair.repair_id} — Elektro Master Repairs"
     body = (
         f"Dear {customer.full_name},\n\n"
         f"Please find attached the quotation for your device repair:\n\n"
@@ -357,7 +360,7 @@ def quotation_send(request, pk):
         f"Thank you for trusting Elektro Master Repairs.\n"
         f"Elektro Master Repairs Team"
     )
-    filename = f"quotation-repair-{repair.id:04d}.pdf"
+    filename = f"quotation-repair-{repair.repair_id}.pdf"
 
     success = send_document_email(
         to_email=customer.email,

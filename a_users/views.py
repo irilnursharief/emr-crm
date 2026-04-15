@@ -35,7 +35,7 @@ def dashboard(request):
 
     # --- Repairs assigned to current user (for technicians) ---
     my_repairs = None
-    if request.user.is_technician:
+    if request.user.role == "admin" or request.user.is_technician:
         my_repairs = (
             Repair.objects.filter(assigned_to=request.user)
             .exclude(status__in=["completed", "released"])
