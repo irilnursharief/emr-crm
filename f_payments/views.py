@@ -32,7 +32,7 @@ def payment_create(request):
             log_payment_event(
                 request=request,
                 event="create",
-                repair_id=repair.id,
+                repair_id=repair.repair_id,
                 amount=float(payment.amount),
                 payment_type=payment.payment_type,
                 success=True,
@@ -55,7 +55,10 @@ def payment_create(request):
             "breadcrumbs": [
                 {"label": "Home", "url": "/dashboard/"},
                 {"label": "Repairs", "url": "/repairs/"},
-                {"label": f"Repair #{repair.id:04d}", "url": f"/repairs/{repair.pk}/"},
+                {
+                    "label": f"Repair # {repair.repair_id}",
+                    "url": f"/repairs/{repair.pk}/",
+                },
                 {"label": "Add Payment", "url": None},
             ],
         },

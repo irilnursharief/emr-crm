@@ -39,14 +39,16 @@ class PaymentInline(admin.TabularInline):
 
 @admin.register(Repair)
 class RepairAdmin(admin.ModelAdmin):
-    list_display = ["id", "device", "status", "assigned_to", "created_at"]
+    list_display = ["repair_id", "id", "device", "status", "assigned_to", "created_at"]
     list_filter = ["status", "created_at", "assigned_to"]
     search_fields = [
+        "repair_id",
         "device__serial_number",
         "device__customer__first_name",
         "issue_category",
     ]
     readonly_fields = [
+        "repair_id",
         "created_at",
         "updated_at",
         "created_by",
